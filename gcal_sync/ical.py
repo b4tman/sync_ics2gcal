@@ -11,9 +11,27 @@ class EventConverter(Event):
     """
 
     def _str_prop(self, prop):
+        """decoded string property
+
+        Arguments:
+            prop - propperty name
+
+        Returns:
+            string value
+        """
+
         return self.decoded(prop).decode(encoding='utf-8')
 
     def _datetime_str_prop(self, prop):
+        """utc datetime as string from property
+
+        Arguments:
+            prop -- property name
+
+        Returns:
+            utc datetime value as string in iso format
+        """
+
         date = self.decoded(prop)
         if not isinstance(date, datetime.datetime):
             date = datetime.datetime(
@@ -22,6 +40,15 @@ class EventConverter(Event):
         return utc.normalize(date.astimezone(utc)).replace(tzinfo=None).isoformat() + 'Z'
 
     def _gcal_start(self):
+        """ event start dict from icalendar event
+
+        Raises:
+            ValueError -- if DTSTART not date or datetime
+
+        Returns:
+            dict
+        """
+
         start_date = self.decoded('DTSTART')
         if isinstance(start_date, datetime.datetime):
             return {
@@ -35,6 +62,16 @@ class EventConverter(Event):
             raise ValueError('DTSTART must be date or datetime')
 
     def _gcal_end(self):
+        """event end dict from icalendar event
+
+        Raises:
+            ValueError -- if DTEND not date or datetime
+            ValueError -- if no DTEND or DURATION
+            ValueError -- if end date/datetime not found
+        Returns:
+            dict
+        """
+
         if 'DTEND' in self:
             end_date = self.decoded('DTEND')
             if isinstance(end_date, datetime.datetime):
@@ -66,6 +103,15 @@ class EventConverter(Event):
         raise ValueError('end date/time not found')
 
     def _put_to_gcal(self, gcal_event, prop, func, ics_prop=None):
+        """get property from ical event if exist, and put to gcal event
+
+        Arguments:
+            gcal_event -- dest event
+            prop -- property name
+            func -- function to convert
+            ics_prop -- ical property name (default: {None})
+        """
+
         if not ics_prop:
             ics_prop = prop
         if ics_prop in self:
@@ -112,6 +158,11 @@ class CalendarConverter():
         with open(filename, 'r', encoding='utf-8') as f:
             self.calendar = Calendar.from_ical(f.read())
             self.logger.info('%s loaded', filename)
+
+    def loads(self, string):
+        """ load calendar from ics string
+        """
+        self.calendar = Calendar.from_ical(string)
 
     def events_to_gcal(self):
         """Convert events to google calendar resources

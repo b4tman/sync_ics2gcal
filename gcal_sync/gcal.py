@@ -7,8 +7,20 @@ import sys
 
 
 class GoogleCalendarService():
+    """class for make google calendar service Resource
+
+    Returns:
+        service Resource
+    """
+
     @staticmethod
     def from_srv_acc_file(service_account_file):
+        """make service Resource from service account filename (authorize)
+
+        Returns:
+            service Resource
+        """
+
         scopes = 'https://www.googleapis.com/auth/calendar'
         credentials = service_account.ServiceAccountCredentials.from_json_keyfile_name(
             service_account_file, scopes=scopes)
@@ -18,6 +30,9 @@ class GoogleCalendarService():
 
 
 class GoogleCalendar():
+    """class to interact with calendar on google
+    """
+
     logger = logging.getLogger('GoogleCalendar')
 
     def __init__(self, service, calendarId):
@@ -25,9 +40,9 @@ class GoogleCalendar():
         self.calendarId = calendarId
 
     def list_events_from(self, start):
-        ''' Получение списка событий из GCAL начиная с даты start
-        '''
-        fields='nextPageToken,items(id,iCalUID,updated)'
+        """ list events from calendar, where start date >= start
+        """
+        fields = 'nextPageToken,items(id,iCalUID,updated)'
         events = []
         page_token = None
         timeMin = utc.normalize(start.astimezone(utc)).replace(
@@ -44,7 +59,7 @@ class GoogleCalendar():
         return events
 
     def find_exists(self, events):
-        """ Поиск уже существующих в GCAL событий, из списка событий к вставке
+        """ find existing events from list, by 'iCalUID' field
 
         Arguments:
             events {list} -- list of events
@@ -54,7 +69,7 @@ class GoogleCalendar():
                   events_exist - list of tuples: (new_event, exists_event)
         """
 
-        fields='items(id,iCalUID,updated)'		
+        fields = 'items(id,iCalUID,updated)'
         events_by_req = []
         exists = []
         not_found = []
@@ -86,13 +101,13 @@ class GoogleCalendar():
         return exists, not_found
 
     def insert_events(self, events):
-        """ Вставка событий в GCAL
+        """ insert list of events
 
         Arguments:
-            events  -- список событий
+            events  - events list
         """
 
-        fields='id'
+        fields = 'id'
         events_by_req = []
 
         def insert_callback(request_id, response, exception):
@@ -114,14 +129,13 @@ class GoogleCalendar():
         batch.execute()
 
     def patch_events(self, event_tuples):
-        """ Обновление (патч) событий в GCAL
+        """ patch (update) events
 
         Arguments:
-            calendarId  -- ИД календаря
-            event_tuples  -- список кортежей событий (новое, старое)
+            event_tuples  -- list of tuples: (new_event, exists_event)
         """
 
-        fields='id'
+        fields = 'id'
         events_by_req = []
 
         def patch_callback(request_id, response, exception):
@@ -145,13 +159,13 @@ class GoogleCalendar():
         batch.execute()
 
     def update_events(self, event_tuples):
-        """ Обновление событий в GCAL
+        """ update events
 
         Arguments:
-            event_tuples  -- список кортежей событий (новое, старое)
+            event_tuples  -- list of tuples: (new_event, exists_event)
         """
-        
-        fields='id'
+
+        fields = 'id'
         events_by_req = []
 
         def update_callback(request_id, response, exception):
@@ -175,10 +189,10 @@ class GoogleCalendar():
         batch.execute()
 
     def delete_events(self, events):
-        """ Удаление событий в GCAL
+        """ delete events
 
         Arguments:
-            events  -- список событий
+            events  -- list of events
         """
 
         events_by_req = []
@@ -201,6 +215,9 @@ class GoogleCalendar():
         batch.execute()
 
     def make_public(self):
+        """make calendar puplic
+        """
+
         rule_public = {
             'scope': {
                 'type': 'default',
@@ -210,6 +227,12 @@ class GoogleCalendar():
         return self.service.acl().insert(calendarId=self.calendarId, body=rule_public).execute()
 
     def add_owner(self, email):
+        """add calendar owner by email
+
+        Arguments:
+            email -- email to add
+        """
+
         rule_owner = {
             'scope': {
                 'type': 'user',
