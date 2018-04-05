@@ -27,13 +27,14 @@ class GoogleCalendar():
     def list_events_from(self, start):
         ''' Получение списка событий из GCAL начиная с даты start
         '''
+        fields='nextPageToken,items(id,iCalUID,updated)'
         events = []
         page_token = None
         timeMin = utc.normalize(start.astimezone(utc)).replace(
             tzinfo=None).isoformat() + 'Z'
         while True:
             response = self.service.events().list(calendarId=self.calendarId, pageToken=page_token,
-                                                  singleEvents=True, timeMin=timeMin, fields='id,iCalUID,updated').execute()
+                                                  singleEvents=True, timeMin=timeMin, fields=fields).execute()
             if 'items' in response:
                 events.extend(response['items'])
                 page_token = response.get('nextPageToken')
@@ -53,6 +54,7 @@ class GoogleCalendar():
                   events_exist - list of tuples: (new_event, exists_event)
         """
 
+        fields='items(id,iCalUID,updated)'		
         events_by_req = []
         exists = []
         not_found = []
@@ -76,7 +78,7 @@ class GoogleCalendar():
         for event in events:
             events_by_req.append(event)
             batch.add(self.service.events().list(calendarId=self.calendarId,
-                                                 iCalUID=event['iCalUID'], showDeleted=True, fields='id,iCalUID,updated'), request_id=str(i))
+                                                 iCalUID=event['iCalUID'], showDeleted=True, fields=fields), request_id=str(i))
             i += 1
         batch.execute()
         self.logger.info('%d events exists, %d not found',
@@ -90,6 +92,7 @@ class GoogleCalendar():
             events  -- список событий
         """
 
+        fields='id'
         events_by_req = []
 
         def insert_callback(request_id, response, exception):
@@ -106,7 +109,7 @@ class GoogleCalendar():
         for event in events:
             events_by_req.append(event)
             batch.add(self.service.events().insert(
-                calendarId=self.calendarId, body=event, fields='id,iCalUID,updated'), request_id=str(i))
+                calendarId=self.calendarId, body=event, fields=fields), request_id=str(i))
             i += 1
         batch.execute()
 
@@ -118,6 +121,7 @@ class GoogleCalendar():
             event_tuples  -- список кортежей событий (новое, старое)
         """
 
+        fields='id'
         events_by_req = []
 
         def patch_callback(request_id, response, exception):
@@ -136,7 +140,7 @@ class GoogleCalendar():
                 continue
             events_by_req.append(event_new)
             batch.add(self.service.events().patch(
-                calendarId=self.calendarId, eventId=event_old['id'], body=event_new), fields='id,iCalUID,updated', request_id=str(i))
+                calendarId=self.calendarId, eventId=event_old['id'], body=event_new), fields=fields, request_id=str(i))
             i += 1
         batch.execute()
 
@@ -146,7 +150,8 @@ class GoogleCalendar():
         Arguments:
             event_tuples  -- список кортежей событий (новое, старое)
         """
-
+        
+        fields='id'
         events_by_req = []
 
         def update_callback(request_id, response, exception):
@@ -165,7 +170,7 @@ class GoogleCalendar():
                 continue
             events_by_req.append(event_new)
             batch.add(self.service.events().update(
-                calendarId=self.calendarId, eventId=event_old['id'], body=event_new, fields='id,iCalUID,updated'), request_id=str(i))
+                calendarId=self.calendarId, eventId=event_old['id'], body=event_new, fields=fields), request_id=str(i))
             i += 1
         batch.execute()
 
