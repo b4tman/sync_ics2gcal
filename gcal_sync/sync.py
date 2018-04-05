@@ -1,7 +1,7 @@
 import dateutil.parser
 import logging
 import operator
-
+from pytz import utc
 
 class CalendarSync():
     logger = logging.getLogger('CalendarSync')
@@ -75,8 +75,18 @@ class CalendarSync():
             return op(dateutil.parser.parse(event['updated']), date)
 
         return list(filter(filter_by_date, events))
-
+    
+    @staticmethod
+    def _tz_aware_datetime(date):
+        if not isinstance(date, datetime.datetime):
+            date = datetime.datetime(date.year, date.month, date.day)
+        if date.tzinfo is None:
+            date = date.replace(tzinfo=utc)
+        return date
+    
     def prepare_sync(self, start_date):
+        start_date = _tz_aware_datetime(start_date)
+        
         events_src = self.converter.events_to_gcal()
         events_dst = self.gcalendar.list_events_from(start_date)
 
