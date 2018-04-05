@@ -214,6 +214,33 @@ class GoogleCalendar():
             i += 1
         batch.execute()
 
+    def create(self, summary, timeZone=None):
+        """create calendar
+        
+        Arguments:
+            summary -- new calendar summary
+        
+        Keyword Arguments:
+            timeZone -- new calendar timezone as string (optional)
+
+        Returns:
+            calendar Resource
+        """
+
+        calendar = {'summary': summary}
+        if timeZone is not None:
+            calendar['timeZone'] = timeZone
+
+        created_calendar = self.service.calendars().insert(body=calendar).execute()
+        self.calendarId = created_calendar['id']
+        return created_calendar
+
+    def delete(self):
+        """delete calendar
+        """
+
+        self.service.calendars().delete(calendarId=self.calendarId).execute()
+
     def make_public(self):
         """make calendar puplic
         """
