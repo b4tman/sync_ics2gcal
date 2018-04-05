@@ -1,0 +1,7 @@
+
+#start_from: 2018-04-03T13:23:25.000001Z
+start_from: now
+service_account: service-account.json
+calendar:
+  google_id: google-calendar-id@group.calendar.google.com
+  source: my-test.ics

@@ -1,0 +1,5 @@
+config.yml
+service-account.json
+*.pyc
+my-test*.ics
+.vscode/*
