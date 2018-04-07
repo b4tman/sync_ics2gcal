@@ -32,12 +32,12 @@ class CalendarSync():
 
         def get_key(item): return item[key]
 
-        keys_src = list(map(get_key, items_src))
-        keys_dst = list(map(get_key, items_dst))
+        keys_src = set(map(get_key, items_src))
+        keys_dst = set(map(get_key, items_dst))
 
-        keys_to_insert = set(keys_src) - set(keys_dst)
-        keys_to_update = set(keys_src) & set(keys_dst)
-        keys_to_delete = set(keys_dst) - set(keys_src)
+        keys_to_insert = keys_src - keys_dst
+        keys_to_update = keys_src & keys_dst
+        keys_to_delete = keys_dst - keys_src
 
         def items_by_keys(items, key_name, keys):
             return list(filter(lambda item: item[key_name] in keys, items))
