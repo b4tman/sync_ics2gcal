@@ -83,6 +83,8 @@ def main():
         list_calendars(service)
     elif 'create' == args.command:
         create_calendar(service, args.summary, args.timezone, args.public)
+    elif 'add_owner' == args.command:
+        add_owner(service, args.id, args.owner_email)
     elif 'remove' == args.command:
         remove_calendar(service, args.id)
 
