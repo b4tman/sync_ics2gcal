@@ -30,8 +30,11 @@ def parse_args():
         'remove', help='remove calendar')
     parser_remove.add_argument(
         'id', action='store', help='calendar id to remove')
-
-    return parser.parse_args()
+    
+    args = parser.parse_args()
+    if args.command is None:
+        parser.print_usage()
+    return args
 
 
 def load_config():
