@@ -39,14 +39,19 @@ class CalendarSync():
         keys_to_update = set(keys_src) & set(keys_dst)
         keys_to_delete = set(keys_dst) - set(keys_src)
 
+        def get_item(items, key_val):
+            return filter(lambda item: item[key] == key_val, items).__next__()
+
         def items_by_keys(items, key_name, keys):
             return list(filter(lambda item: item[key_name] in keys, items))
-
+        
         items_to_insert = items_by_keys(items_src, key, keys_to_insert)
-        items_to_update = list(zip(items_by_keys(
-            items_src, key, keys_to_update), items_by_keys(items_dst, key, keys_to_update)))
         items_to_delete = items_by_keys(items_dst, key, keys_to_delete)
 
+        items_to_update = []
+        for key_val in keys_to_update:
+            items_to_update.append( (get_item(items_src, key_val), get_item(items_dst, key_val)) )
+        
         return items_to_insert, items_to_update, items_to_delete
 
     def _filter_events_to_update(self):
