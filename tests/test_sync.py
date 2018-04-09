@@ -2,6 +2,8 @@ import datetime
 import hashlib
 import operator
 import unittest
+from copy import deepcopy
+from random import shuffle
 
 import dateutil.parser
 from pytz import timezone, utc
@@ -22,12 +24,13 @@ class TestCalendarSync(unittest.TestCase):
     def gen_events(start, stop, start_time):
         one_hour = datetime.datetime(
             1, 1, 1, 2) - datetime.datetime(1, 1, 1, 1)
+        result = []
         for i in range(start, stop):
             event_start = start_time + (one_hour * i)
             event_end = event_start + one_hour
             updated = utc.normalize(
                 event_start.astimezone(utc)).replace(tzinfo=None)
-            yield {
+            result.append({
                 'summary': 'test event __ {}'.format(i),
                 'location': 'la la la {}'.format(i),
                 'description': 'test TEST -- test event {}'.format(i),
@@ -40,12 +43,15 @@ class TestCalendarSync(unittest.TestCase):
                 "iCalUID": "{}@test.com".format(TestCalendarSync.sha1("test - event {}".format(i))),
                 "updated": updated.isoformat() + 'Z',
                 "created": updated.isoformat() + 'Z'
-            }
+            })
+        return result
 
     @staticmethod
     def gen_list_to_compare(start, stop):
+        result = []
         for i in range(start, stop):
-            yield {'iCalUID': 'test{}'.format(i)}
+            result.append({'iCalUID': 'test{}'.format(i)})
+        return result
 
     @staticmethod
     def get_start_date(event):
@@ -58,19 +64,31 @@ class TestCalendarSync(unittest.TestCase):
         return dateutil.parser.parse(start_date)
 
     def test_compare(self):
-        lst_src = list(TestCalendarSync.gen_list_to_compare(1, 5))
-        lst_dst = list(TestCalendarSync.gen_list_to_compare(3, 7))
+        lst_src = TestCalendarSync.gen_list_to_compare(1, 11)
+        lst_dst = TestCalendarSync.gen_list_to_compare(6, 16)
+
+        lst_src_rnd = deepcopy(lst_src)
+        lst_dst_rnd = deepcopy(lst_dst)
+
+        shuffle(lst_src_rnd)
+        shuffle(lst_dst_rnd)
 
         to_ins, to_upd, to_del = CalendarSync._events_list_compare(
-            lst_src, lst_dst)
+            lst_src_rnd, lst_dst_rnd)
 
-        self.assertEqual(len(to_ins), 2)
-        self.assertEqual(len(to_upd), 2)
-        self.assertEqual(len(to_del), 2)
+        self.assertEqual(len(to_ins), 5)
+        self.assertEqual(len(to_upd), 5)
+        self.assertEqual(len(to_del), 5)
 
-        self.assertEqual(to_ins, lst_src[:2])
-        self.assertEqual(to_upd, list(zip(lst_src[2:4], lst_dst[:2])))
-        self.assertEqual(to_del, lst_dst[2:])
+        self.assertEqual(
+            sorted(to_ins, key=lambda x: x['iCalUID']), lst_src[:5])
+        self.assertEqual(
+            sorted(to_del, key=lambda x: x['iCalUID']), lst_dst[5:])
+
+        to_upd_ok = list(zip(lst_src[5:], lst_dst[:5]))
+        self.assertEqual(len(to_upd), len(to_upd_ok))
+        for item in to_upd_ok:
+            self.assertIn(item, to_upd)
 
     def test_filter_events_by_date(self):
         msk = timezone('Europe/Moscow')
@@ -81,7 +99,9 @@ class TestCalendarSync(unittest.TestCase):
             1, 1, 1, 2) - datetime.datetime(1, 1, 1, 1)
         date_cmp = msk_now + (one_hour * 5)
 
-        events = list(TestCalendarSync.gen_events(1, 11, msk_now))
+        events = TestCalendarSync.gen_events(1, 11, msk_now)
+        shuffle(events)
+
         events_pending = CalendarSync._filter_events_by_date(
             events, date_cmp, operator.ge)
         events_past = CalendarSync._filter_events_by_date(
@@ -91,7 +111,8 @@ class TestCalendarSync(unittest.TestCase):
         self.assertEqual(len(events_past), 4)
 
         for event in events_pending:
-            self.assertGreaterEqual(TestCalendarSync.get_start_date(event), date_cmp)
+            self.assertGreaterEqual(
+                TestCalendarSync.get_start_date(event), date_cmp)
 
         for event in events_past:
             self.assertLess(TestCalendarSync.get_start_date(event), date_cmp)
@@ -106,8 +127,8 @@ class TestCalendarSync(unittest.TestCase):
         date_upd = msk_now + (one_hour * 5)
 
         count = 10
-        events_old = list(TestCalendarSync.gen_events(1, 1 + count, msk_now))
-        events_new = list(TestCalendarSync.gen_events(1, 1 + count, date_upd))
+        events_old = TestCalendarSync.gen_events(1, 1 + count, msk_now)
+        events_new = TestCalendarSync.gen_events(1, 1 + count, date_upd)
 
         sync1 = CalendarSync(None, None)
         sync1.to_update = list(zip(events_new, events_old))
