@@ -21,29 +21,42 @@ class TestCalendarSync(unittest.TestCase):
         return h.hexdigest()
 
     @staticmethod
-    def gen_events(start, stop, start_time):
-        one_hour = datetime.datetime(
-            1, 1, 1, 2) - datetime.datetime(1, 1, 1, 1)
+    def gen_events(start, stop, start_time, no_time=False):
+        if no_time:
+            start_time = datetime.date(
+                start_time.year, start_time.month, start_time.day)
+            duration = datetime.date(1, 1, 2) - datetime.date(1, 1, 1)
+            date_key = "date"
+            suff = ''
+        else:
+            start_time = utc.normalize(
+                start_time.astimezone(utc)).replace(tzinfo=None)
+            duration = datetime.datetime(
+                1, 1, 1, 2) - datetime.datetime(1, 1, 1, 1)
+            date_key = "dateTime"
+            suff = 'Z'
+
         result = []
         for i in range(start, stop):
-            event_start = start_time + (one_hour * i)
-            event_end = event_start + one_hour
-            updated = utc.normalize(
-                event_start.astimezone(utc)).replace(tzinfo=None)
-            result.append({
+            event_start = start_time + (duration * i)
+            event_end = event_start + duration
+
+            updated = event_start
+            if no_time:
+                updated = datetime.datetime(
+                    updated.year, updated.month, updated.day, 0, 0, 0, 1, tzinfo=utc)
+
+            event = {
                 'summary': 'test event __ {}'.format(i),
                 'location': 'la la la {}'.format(i),
                 'description': 'test TEST -- test event {}'.format(i),
-                'start': {
-                    'dateTime': event_start.isoformat()
-                },
-                'end': {
-                    'dateTime': event_end.isoformat(),
-                },
                 "iCalUID": "{}@test.com".format(TestCalendarSync.sha1("test - event {}".format(i))),
                 "updated": updated.isoformat() + 'Z',
                 "created": updated.isoformat() + 'Z'
-            })
+            }
+            event['start'] = {date_key: event_start.isoformat() + suff}
+            event['end'] = {date_key: event_end.isoformat() + suff}
+            result.append(event)
         return result
 
     @staticmethod
@@ -57,18 +70,26 @@ class TestCalendarSync(unittest.TestCase):
     def get_start_date(event):
         event_start = event['start']
         start_date = None
+        is_date = False
         if 'date' in event_start:
             start_date = event_start['date']
+            is_date = True
         if 'dateTime' in event_start:
             start_date = event_start['dateTime']
-        return dateutil.parser.parse(start_date)
+
+        result = dateutil.parser.parse(start_date)
+        if is_date:
+            result = datetime.date(result.year, result.month, result.day)
+
+        return result
 
     def test_compare(self):
         part_len = 20
         # [1..2n]
         lst_src = TestCalendarSync.gen_list_to_compare(1, 1 + part_len * 2)
         # [n..3n]
-        lst_dst = TestCalendarSync.gen_list_to_compare(1 + part_len, 1 + part_len * 3)
+        lst_dst = TestCalendarSync.gen_list_to_compare(
+            1 + part_len, 1 + part_len * 3)
 
         lst_src_rnd = deepcopy(lst_src)
         lst_dst_rnd = deepcopy(lst_dst)
@@ -93,16 +114,28 @@ class TestCalendarSync(unittest.TestCase):
         for item in to_upd_ok:
             self.assertIn(item, to_upd)
 
-    def test_filter_events_by_date(self):
+    def test_filter_events_by_date(self, no_time=False):
         msk = timezone('Europe/Moscow')
         now = utc.localize(datetime.datetime.utcnow())
         msk_now = msk.normalize(now.astimezone(msk))
 
-        one_hour = datetime.datetime(
-            1, 1, 1, 2) - datetime.datetime(1, 1, 1, 1)
-        date_cmp = msk_now + (one_hour * 5)
+        part_len = 5
 
-        events = TestCalendarSync.gen_events(1, 11, msk_now)
+        if no_time:
+            duration = datetime.date(
+                1, 1, 2) - datetime.date(1, 1, 1)
+        else:
+            duration = datetime.datetime(
+                1, 1, 1, 2) - datetime.datetime(1, 1, 1, 1)
+
+        date_cmp = msk_now + (duration * part_len)
+
+        if no_time:
+            date_cmp = datetime.date(
+                date_cmp.year, date_cmp.month, date_cmp.day)
+
+        events = TestCalendarSync.gen_events(
+            1, 1 + (part_len * 2), msk_now, no_time)
         shuffle(events)
 
         events_pending = CalendarSync._filter_events_by_date(
@@ -110,8 +143,8 @@ class TestCalendarSync(unittest.TestCase):
         events_past = CalendarSync._filter_events_by_date(
             events, date_cmp, operator.lt)
 
-        self.assertEqual(len(events_pending), 6)
-        self.assertEqual(len(events_past), 4)
+        self.assertEqual(len(events_pending), 1 + part_len)
+        self.assertEqual(len(events_past), part_len - 1)
 
         for event in events_pending:
             self.assertGreaterEqual(
@@ -119,6 +152,9 @@ class TestCalendarSync(unittest.TestCase):
 
         for event in events_past:
             self.assertLess(TestCalendarSync.get_start_date(event), date_cmp)
+
+    def test_filter_events_by_date_no_time(self):
+        self.test_filter_events_by_date(no_time=True)
 
     def test_filter_events_to_update(self):
         msk = timezone('Europe/Moscow')
