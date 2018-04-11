@@ -40,8 +40,8 @@ class CalendarSync():
         keys_to_delete = set(keys_dst) - set(keys_src)
 
         def get_item(items, key_val):
-            items = list(filter(lambda item: item[key] == key_val, items))
-            return items[0]
+            for item in filter(lambda item: item[key] == key_val, items):
+                return item
 
         def items_by_keys(items, key_name, keys):
             return list(filter(lambda item: item[key_name] in keys, items))
