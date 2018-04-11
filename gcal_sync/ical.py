@@ -1,8 +1,47 @@
-from icalendar import Calendar, Event
+import datetime
 import logging
+
+from icalendar import Calendar, Event
 from pytz import utc
 
-import datetime
+
+def format_datetime_utc(value):
+    """utc datetime as string from date or datetime value
+    Arguments:
+        value -- date or datetime value
+
+    Returns:
+        utc datetime value as string in iso format
+    """
+    if not isinstance(value, datetime.datetime):
+        value = datetime.datetime(
+            value.year, value.month, value.day, tzinfo=utc)
+    value = value.replace(microsecond=1)
+    return utc.normalize(value.astimezone(utc)).replace(tzinfo=None).isoformat() + 'Z'
+
+
+def gcal_date_or_dateTime(value, check_value=None):
+    """date or dateTime to gcal (start or end dict)
+    Arguments:
+        value -- date or datetime value
+        check_value - date or datetime to choise result type (if not None)
+
+    Returns:
+        dict { 'date': ... } or { 'dateTime': ... }
+    """
+
+    if check_value is None:
+        check_value = value
+
+    result = {}
+    if isinstance(check_value, datetime.datetime):
+        result['dateTime'] = format_datetime_utc(value)
+    else:
+        if isinstance(check_value, datetime.date):
+            if isinstance(value, datetime.datetime):
+                value = datetime.date(value.year, value.month, value.day)
+        result['date'] = value.isoformat()
+    return result
 
 
 class EventConverter(Event):
@@ -32,12 +71,7 @@ class EventConverter(Event):
             utc datetime value as string in iso format
         """
 
-        date = self.decoded(prop)
-        if not isinstance(date, datetime.datetime):
-            date = datetime.datetime(
-                date.year, date.month, date.day, tzinfo=utc)
-        date = date.replace(microsecond=1)
-        return utc.normalize(date.astimezone(utc)).replace(tzinfo=None).isoformat() + 'Z'
+        return format_datetime_utc(self.decoded(prop))
 
     def _gcal_start(self):
         """ event start dict from icalendar event
@@ -49,58 +83,31 @@ class EventConverter(Event):
             dict
         """
 
-        start_date = self.decoded('DTSTART')
-        if isinstance(start_date, datetime.datetime):
-            return {
-                'dateTime': self._datetime_str_prop('DTSTART')
-            }
-        else:
-            if isinstance(start_date, datetime.date):
-                return {
-                    'date': start_date.isoformat()
-                }
-            raise ValueError('DTSTART must be date or datetime')
+        value = self.decoded('DTSTART')
+        return gcal_date_or_dateTime(value)
 
     def _gcal_end(self):
         """event end dict from icalendar event
 
         Raises:
-            ValueError -- if DTEND not date or datetime
             ValueError -- if no DTEND or DURATION
-            ValueError -- if end date/datetime not found
         Returns:
             dict
         """
 
+        result = None
         if 'DTEND' in self:
-            end_date = self.decoded('DTEND')
-            if isinstance(end_date, datetime.datetime):
-                return {
-                    'dateTime': self._datetime_str_prop('DTEND')
-                }
-            else:
-                if isinstance(end_date, datetime.date):
-                    return {
-                        'date': end_date.isoformat()
-                    }
-                raise ValueError('DTEND must be date or datetime')
-        else:
-            if 'DURATION' in self:
-                start_date = self.decoded('DTSTART')
-                duration = self.decoded('DURATION')
-                end_date = start_date + duration
+            value = self.decoded('DTEND')
+            result = gcal_date_or_dateTime(value)
+        elif 'DURATION' in self:
+            start_val = self.decoded('DTSTART')
+            duration = self.decoded('DURATION')
+            end_val = start_val + duration
 
-                if isinstance(start_date, datetime.datetime):
-                    return {
-                        'dateTime': utc.normalize(end_date.astimezone(utc)).replace(tzinfo=None, microsecond=1).isoformat() + 'Z'
-                    }
-                else:
-                    if isinstance(start_date, datetime.date):
-                        return {
-                            'date': datetime.date(end_date.year, end_date.month, end_date.day).isoformat()
-                        }
+            result = gcal_date_or_dateTime(end_val, check_value=start_val)
+        else:
             raise ValueError('no DTEND or DURATION')
-        raise ValueError('end date/time not found')
+        return result
 
     def _put_to_gcal(self, gcal_event, prop, func, ics_prop=None):
         """get property from ical event if exist, and put to gcal event

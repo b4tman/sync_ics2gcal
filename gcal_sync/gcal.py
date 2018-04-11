@@ -29,6 +29,24 @@ class GoogleCalendarService():
         return service
 
 
+def select_event_key(event):
+    """select event key for logging
+    
+    Arguments:
+        event -- event resource
+    
+    Returns:
+        key name or None if no key found
+    """
+
+    key = None
+    if 'iCalUID' in event:
+        key = 'iCalUID'
+    elif 'id' in event:
+        key = 'id'
+    return key
+
+
 class GoogleCalendar():
     """class to interact with calendar on google
     """
@@ -38,6 +56,33 @@ class GoogleCalendar():
     def __init__(self, service, calendarId):
         self.service = service
         self.calendarId = calendarId
+
+    def _make_request_callback(self, action, events_by_req):
+        """make callback for log result of batch request
+        
+        Arguments:
+            action -- action name
+            events_by_req -- list of events ordered by request id
+        
+        Returns:
+            callback function
+        """
+
+        def callback(request_id, response, exception):
+            event = events_by_req[int(request_id)]
+            key = select_event_key(event)
+
+            if exception is not None:
+                self.logger.error('failed to %s event with %s: %s, exception: %s',
+                                  action, key, event.get(key), str(exception))
+            else:
+                resp_key = select_event_key(response)
+                if resp_key is not None:
+                    event = response
+                    key = resp_key
+                self.logger.info('event %s ok, %s: %s',
+                                 action, key, event.get(key))
+        return callback
 
     def list_events_from(self, start):
         """ list events from calendar, where start date >= start
@@ -110,15 +155,7 @@ class GoogleCalendar():
         fields = 'id'
         events_by_req = []
 
-        def insert_callback(request_id, response, exception):
-            if exception is not None:
-                event = events_by_req[int(request_id)]
-                self.logger.error('failed to insert event with UID: %s, exception: %s', event.get(
-                    'UID'), str(exception))
-            else:
-                event = response
-                self.logger.info('event created, id: %s', event.get('id'))
-
+        insert_callback = self._make_request_callback('insert', events_by_req)
         batch = self.service.new_batch_http_request(callback=insert_callback)
         i = 0
         for event in events:
@@ -138,15 +175,7 @@ class GoogleCalendar():
         fields = 'id'
         events_by_req = []
 
-        def patch_callback(request_id, response, exception):
-            if exception is not None:
-                event = events_by_req[int(request_id)]
-                self.logger.error('failed to patch event with UID: %s, exception: %s', event.get(
-                    'UID'), str(exception))
-            else:
-                event = response
-                self.logger.info('event patched, id: %s', event.get('id'))
-
+        patch_callback = self._make_request_callback('patch', events_by_req)
         batch = self.service.new_batch_http_request(callback=patch_callback)
         i = 0
         for event_new, event_old in event_tuples:
@@ -168,15 +197,7 @@ class GoogleCalendar():
         fields = 'id'
         events_by_req = []
 
-        def update_callback(request_id, response, exception):
-            if exception is not None:
-                event = events_by_req[int(request_id)]
-                self.logger.error('failed to update event with UID: %s, exception: %s', event.get(
-                    'UID'), str(exception))
-            else:
-                event = response
-                self.logger.info('event updated, id: %s', event.get('id'))
-
+        update_callback = self._make_request_callback('update', events_by_req)
         batch = self.service.new_batch_http_request(callback=update_callback)
         i = 0
         for event_new, event_old in event_tuples:
@@ -197,14 +218,7 @@ class GoogleCalendar():
 
         events_by_req = []
 
-        def delete_callback(request_id, _, exception):
-            event = events_by_req[int(request_id)]
-            if exception is not None:
-                self.logger.error('failed to delete event with UID: %s, exception: %s', event.get(
-                    'UID'), str(exception))
-            else:
-                self.logger.info('event deleted, id: %s', event.get('id'))
-
+        delete_callback = self._make_request_callback('delete', events_by_req)
         batch = self.service.new_batch_http_request(callback=delete_callback)
         i = 0
         for event in events:
@@ -216,10 +230,10 @@ class GoogleCalendar():
 
     def create(self, summary, timeZone=None):
         """create calendar
-        
+
         Arguments:
             summary -- new calendar summary
-        
+
         Keyword Arguments:
             timeZone -- new calendar timezone as string (optional)
 

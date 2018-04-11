@@ -50,7 +50,7 @@ class TestCalendarSync(unittest.TestCase):
     def gen_list_to_compare(start, stop):
         result = []
         for i in range(start, stop):
-            result.append({'iCalUID': 'test{}'.format(i)})
+            result.append({'iCalUID': 'test{:06d}'.format(i)})
         return result
 
     @staticmethod
@@ -64,8 +64,11 @@ class TestCalendarSync(unittest.TestCase):
         return dateutil.parser.parse(start_date)
 
     def test_compare(self):
-        lst_src = TestCalendarSync.gen_list_to_compare(1, 11)
-        lst_dst = TestCalendarSync.gen_list_to_compare(6, 16)
+        part_len = 20
+        # [1..2n]
+        lst_src = TestCalendarSync.gen_list_to_compare(1, 1 + part_len * 2)
+        # [n..3n]
+        lst_dst = TestCalendarSync.gen_list_to_compare(1 + part_len, 1 + part_len * 3)
 
         lst_src_rnd = deepcopy(lst_src)
         lst_dst_rnd = deepcopy(lst_dst)
@@ -76,16 +79,16 @@ class TestCalendarSync(unittest.TestCase):
         to_ins, to_upd, to_del = CalendarSync._events_list_compare(
             lst_src_rnd, lst_dst_rnd)
 
-        self.assertEqual(len(to_ins), 5)
-        self.assertEqual(len(to_upd), 5)
-        self.assertEqual(len(to_del), 5)
+        self.assertEqual(len(to_ins), part_len)
+        self.assertEqual(len(to_upd), part_len)
+        self.assertEqual(len(to_del), part_len)
 
         self.assertEqual(
-            sorted(to_ins, key=lambda x: x['iCalUID']), lst_src[:5])
+            sorted(to_ins, key=lambda x: x['iCalUID']), lst_src[:part_len])
         self.assertEqual(
-            sorted(to_del, key=lambda x: x['iCalUID']), lst_dst[5:])
+            sorted(to_del, key=lambda x: x['iCalUID']), lst_dst[part_len:])
 
-        to_upd_ok = list(zip(lst_src[5:], lst_dst[:5]))
+        to_upd_ok = list(zip(lst_src[part_len:], lst_dst[:part_len]))
         self.assertEqual(len(to_upd), len(to_upd_ok))
         for item in to_upd_ok:
             self.assertIn(item, to_upd)
