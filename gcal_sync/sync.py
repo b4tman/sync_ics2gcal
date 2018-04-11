@@ -77,13 +77,23 @@ class CalendarSync():
         """
 
         def filter_by_date(event):
+            date_cmp = date
             event_start = event['start']
             event_date = None
+            compare_dates = False
+
             if 'date' in event_start:
                 event_date = event_start['date']
-            if 'dateTime' in event_start:
+                compare_dates = True
+            elif 'dateTime' in event_start:
                 event_date = event_start['dateTime']
-            return op(dateutil.parser.parse(event_date), date)
+            
+            event_date = dateutil.parser.parse(event_date)
+            if compare_dates:
+                date_cmp = datetime.date(date.year, date.month, date.day)
+                event_date = datetime.date(event_date.year, event_date.month, event_date.day)
+
+            return op(event_date, date_cmp)
 
         return list(filter(filter_by_date, events))
 
