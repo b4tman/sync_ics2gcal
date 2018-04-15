@@ -70,85 +70,87 @@ END:VEVENT
 END:VCALENDAR
 """
 
+
 class TestCalendarConverter(unittest.TestCase):
     def test_empty_calendar(self):
-      converter = CalendarConverter()
-      converter.loads(ics_empty)
-      evnts = converter.events_to_gcal()
-      self.assertEqual(len(evnts), 0)
-    
+        converter = CalendarConverter()
+        converter.loads(ics_empty)
+        evnts = converter.events_to_gcal()
+        self.assertEqual(len(evnts), 0)
+
     def test_empty_event(self):
-      converter = CalendarConverter()
-      converter.loads(ics_empty_event)
-      with self.assertRaises(KeyError):
-        converter.events_to_gcal()
-    
+        converter = CalendarConverter()
+        converter.loads(ics_empty_event)
+        with self.assertRaises(KeyError):
+            converter.events_to_gcal()
+
     def test_event_no_end(self):
-      converter = CalendarConverter()
-      converter.loads(ics_event_no_end)
-      with self.assertRaises(ValueError):
-        converter.events_to_gcal()
+        converter = CalendarConverter()
+        converter.loads(ics_event_no_end)
+        with self.assertRaises(ValueError):
+            converter.events_to_gcal()
 
     def test_event_date_values(self):
-      converter = CalendarConverter()
-      converter.loads(ics_event_date_val)
-      events = converter.events_to_gcal()
-      self.assertEqual(len(events), 1)
-      event = events[0]
-      self.assertEqual(event['start'], {
-        'date': '2018-02-15'
-      })
-      self.assertEqual(event['end'], {
-        'date': '2018-02-17'
-      })
+        converter = CalendarConverter()
+        converter.loads(ics_event_date_val)
+        events = converter.events_to_gcal()
+        self.assertEqual(len(events), 1)
+        event = events[0]
+        self.assertEqual(event['start'], {
+            'date': '2018-02-15'
+        })
+        self.assertEqual(event['end'], {
+            'date': '2018-02-17'
+        })
 
     def test_event_datetime_utc_values(self):
-      converter = CalendarConverter()
-      converter.loads(ics_event_datetime_utc_val)
-      events = converter.events_to_gcal()
-      self.assertEqual(len(events), 1)
-      event = events[0]
-      self.assertEqual(event['start'], {
-        'dateTime': '2018-03-19T09:20:01.000001Z'
-      })
-      self.assertEqual(event['end'], {
-        'dateTime': '2018-03-19T10:20:01.000001Z'
-      })
-      
+        converter = CalendarConverter()
+        converter.loads(ics_event_datetime_utc_val)
+        events = converter.events_to_gcal()
+        self.assertEqual(len(events), 1)
+        event = events[0]
+        self.assertEqual(event['start'], {
+            'dateTime': '2018-03-19T09:20:01.000001Z'
+        })
+        self.assertEqual(event['end'], {
+            'dateTime': '2018-03-19T10:20:01.000001Z'
+        })
+
     def test_event_date_duration(self):
-      converter = CalendarConverter()
-      converter.loads(ics_event_date_duration)
-      events = converter.events_to_gcal()
-      self.assertEqual(len(events), 1)
-      event = events[0]
-      self.assertEqual(event['start'], {
-        'date': '2018-02-15'
-      })
-      self.assertEqual(event['end'], {
-        'date': '2018-02-18'
-      })
+        converter = CalendarConverter()
+        converter.loads(ics_event_date_duration)
+        events = converter.events_to_gcal()
+        self.assertEqual(len(events), 1)
+        event = events[0]
+        self.assertEqual(event['start'], {
+            'date': '2018-02-15'
+        })
+        self.assertEqual(event['end'], {
+            'date': '2018-02-18'
+        })
 
     def test_event_datetime_utc_duration(self):
-      converter = CalendarConverter()
-      converter.loads(ics_event_datetime_utc_duration)
-      events = converter.events_to_gcal()
-      self.assertEqual(len(events), 1)
-      event = events[0]
-      self.assertEqual(event['start'], {
-        'dateTime': '2018-03-19T09:20:01.000001Z'
-      })
-      self.assertEqual(event['end'], {
-        'dateTime': '2018-03-21T10:25:01.000001Z'
-      })
+        converter = CalendarConverter()
+        converter.loads(ics_event_datetime_utc_duration)
+        events = converter.events_to_gcal()
+        self.assertEqual(len(events), 1)
+        event = events[0]
+        self.assertEqual(event['start'], {
+            'dateTime': '2018-03-19T09:20:01.000001Z'
+        })
+        self.assertEqual(event['end'], {
+            'dateTime': '2018-03-21T10:25:01.000001Z'
+        })
 
     def test_event_created_updated(self):
-      converter = CalendarConverter()
-      converter.loads(ics_event_created_updated)
-      events = converter.events_to_gcal()
-      self.assertEqual(len(events), 1)
-      event = events[0]
-      self.assertEqual(event['created'], '2018-03-20T07:11:55.000001Z')
-      self.assertEqual(event['updated'], '2018-03-26T12:02:35.000001Z')
+        converter = CalendarConverter()
+        converter.loads(ics_event_created_updated)
+        events = converter.events_to_gcal()
+        self.assertEqual(len(events), 1)
+        event = events[0]
+        self.assertEqual(event['created'], '2018-03-20T07:11:55.000001Z')
+        self.assertEqual(event['updated'], '2018-03-26T12:02:35.000001Z')
+
 
 if __name__ == '__main__':
     unittest.main()
