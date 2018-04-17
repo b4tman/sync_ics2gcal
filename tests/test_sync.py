@@ -18,6 +18,7 @@ def sha1(string):
     h.update(string)
     return h.hexdigest()
 
+
 def gen_events(start, stop, start_time, no_time=False):
     if no_time:
         start_time = datetime.date(
@@ -56,11 +57,13 @@ def gen_events(start, stop, start_time, no_time=False):
         result.append(event)
     return result
 
+
 def gen_list_to_compare(start, stop):
     result = []
     for i in range(start, stop):
         result.append({'iCalUID': 'test{:06d}'.format(i)})
     return result
+
 
 def get_start_date(event):
     event_start = event['start']
@@ -77,6 +80,7 @@ def get_start_date(event):
         result = datetime.date(result.year, result.month, result.day)
 
     return result
+
 
 def test_compare():
     part_len = 20
@@ -95,19 +99,21 @@ def test_compare():
     to_ins, to_upd, to_del = CalendarSync._events_list_compare(
         lst_src_rnd, lst_dst_rnd)
 
-    assert len(to_ins) ==  part_len
-    assert len(to_upd) ==  part_len
-    assert len(to_del) ==  part_len
+    assert len(to_ins) == part_len
+    assert len(to_upd) == part_len
+    assert len(to_del) == part_len
 
     assert sorted(to_ins, key=lambda x: x['iCalUID']) == lst_src[:part_len]
     assert sorted(to_del, key=lambda x: x['iCalUID']) == lst_dst[part_len:]
 
     to_upd_ok = list(zip(lst_src[part_len:], lst_dst[:part_len]))
-    assert len(to_upd) ==  len(to_upd_ok)
+    assert len(to_upd) == len(to_upd_ok)
     for item in to_upd_ok:
         assert item in to_upd
 
-def test_filter_events_by_date(no_time=False):
+
+@pytest.mark.parametrize("no_time", [True, False], ids=['date', 'dateTime'])
+def test_filter_events_by_date(no_time):
     msk = timezone('Europe/Moscow')
     now = utc.localize(datetime.datetime.utcnow())
     msk_now = msk.normalize(now.astimezone(msk))
@@ -136,8 +142,8 @@ def test_filter_events_by_date(no_time=False):
     events_past = CalendarSync._filter_events_by_date(
         events, date_cmp, operator.lt)
 
-    assert len(events_pending) ==  1 + part_len
-    assert len(events_past) ==  part_len - 1
+    assert len(events_pending) == 1 + part_len
+    assert len(events_past) == part_len - 1
 
     for event in events_pending:
         assert get_start_date(event) >= date_cmp
@@ -145,8 +151,6 @@ def test_filter_events_by_date(no_time=False):
     for event in events_past:
         assert get_start_date(event) < date_cmp
 
-def test_filter_events_by_date_no_time():
-    test_filter_events_by_date(no_time=True)
 
 def test_filter_events_to_update():
     msk = timezone('Europe/Moscow')
@@ -169,5 +173,5 @@ def test_filter_events_to_update():
     sync2.to_update = list(zip(events_old, events_new))
     sync2._filter_events_to_update()
 
-    assert len(sync1.to_update) ==  count
+    assert len(sync1.to_update) == count
     assert sync2.to_update == []
