@@ -1,9 +1,10 @@
-from apiclient import discovery
-import httplib2
 import logging
-from oauth2client import service_account
-from pytz import utc
 import sys
+
+import google.auth
+from google.oauth2 import service_account
+from googleapiclient import discovery
+from pytz import utc
 
 
 class GoogleCalendarService():
@@ -21,13 +22,11 @@ class GoogleCalendarService():
             service Resource
         """
 
-        scopes = 'https://www.googleapis.com/auth/calendar'
-        credentials = service_account.ServiceAccountCredentials.from_json_keyfile_name(
-            service_account_file, scopes=scopes)
-        http = credentials.authorize(httplib2.Http())
-        service = discovery.build('calendar', 'v3', http=http)
+        scopes = ['https://www.googleapis.com/auth/calendar']
+        credentials = service_account.Credentials.from_service_account_file(service_account_file)
+        scoped_credentials = credentials.with_scopes(scopes)
+        service = discovery.build('calendar', 'v3', credentials=scoped_credentials)
         return service
-
 
 def select_event_key(event):
     """select event key for logging
