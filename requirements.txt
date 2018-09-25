@@ -1,4 +1,5 @@
-google-api-python-client==1.6.6
-icalendar==4.0.1
-pytz==2018.3
-PyYAML==3.12
+google-auth==1.5.0
+google-api-python-client==1.7.3
+icalendar==4.0.2
+pytz==2018.5
+PyYAML==3.13
