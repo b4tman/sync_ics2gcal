@@ -2,4 +2,4 @@ google-auth==1.6.3
 google-api-python-client==1.7.8
 icalendar==4.0.3
 pytz==2018.9
-PyYAML==3.13
+PyYAML==5.1
