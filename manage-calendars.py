@@ -39,7 +39,7 @@ def parse_args():
 
 def load_config():
     with open('config.yml', 'r', encoding='utf-8') as f:
-        result = yaml.load(f)
+        result = yaml.safe_load(f)
     return result
 
 
