@@ -13,7 +13,8 @@ setuptools.setup(
     long_description_content_type='text/markdown',
     url='https://github.com/b4tman/sync_ics2gcal',
     use_scm_version={
-        'fallback_version': '0.1'
+        'fallback_version': '0.1',
+        'local_scheme': 'no-local-version'
     },
     setup_requires=['setuptools_scm', 'setuptools_scm_git_archive'],
     packages=setuptools.find_packages(exclude=['tests']),
