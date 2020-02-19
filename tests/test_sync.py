@@ -8,7 +8,7 @@ import dateutil.parser
 import pytest
 from pytz import timezone, utc
 
-from gcal_sync import CalendarSync
+from sync_ics2gcal import CalendarSync
 
 
 def sha1(string):
