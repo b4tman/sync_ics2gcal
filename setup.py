@@ -1,7 +1,5 @@
 import setuptools
 
-version = '0.1'
-
 with open('README.md', 'r') as fh:
     long_description = fh.read()
 
@@ -14,7 +12,10 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/b4tman/sync_ics2gcal',
-    version=version,
+    use_scm_version={
+        'fallback_version': '0.1'
+    },
+    setup_requires=['setuptools_scm', 'setuptools_scm_git_archive'],
     packages=setuptools.find_packages(exclude=['tests']),
     classifiers=[
         'License :: OSI Approved :: MIT License',
