@@ -32,5 +32,10 @@ setuptools.setup(
         'pytz',
         'PyYAML>=3.13'
     ],
-    scripts=['manage-calendars.py', 'sync-calendar.py']
+    entry_points={
+        "console_scripts": [
+            "sync-ics2gcal = sync_ics2gcal.sync_calendar:main",
+            "manage-ics2gcal = sync_ics2gcal.manage_calendars:main",
+        ]
+    }
 )
