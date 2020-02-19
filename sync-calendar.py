@@ -4,7 +4,7 @@ import dateutil.parser
 import datetime
 import logging
 import logging.config
-from gcal_sync import (
+from sync_ics2gcal import (
     CalendarConverter,
     GoogleCalendarService,
     GoogleCalendar,

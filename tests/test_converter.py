@@ -1,6 +1,6 @@
 import pytest
 
-from gcal_sync import CalendarConverter
+from sync_ics2gcal import CalendarConverter
 
 uid = "UID:uisgtr8tre93wewe0yr8wqy@test.com"
 only_start_date = uid + """

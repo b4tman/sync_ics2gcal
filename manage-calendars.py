@@ -5,7 +5,7 @@ import logging.config
 import yaml
 from pytz import utc
 
-from gcal_sync import GoogleCalendar, GoogleCalendarService
+from sync_ics2gcal import GoogleCalendar, GoogleCalendarService
 
 
 def parse_args():
