@@ -30,6 +30,12 @@ def parse_args():
         'remove', help='remove calendar')
     parser_remove.add_argument(
         'id', action='store', help='calendar id to remove')
+    parser_rename = command_subparsers.add_parser(
+        'rename', help='rename calendar')
+    parser_rename.add_argument(
+        'id', action='store', help='calendar id')
+    parser_rename.add_argument(
+        'summary', action='store', help='new summary')
     
     args = parser.parse_args()
     if args.command is None:
@@ -39,7 +45,7 @@ def parse_args():
 
 def load_config():
     with open('config.yml', 'r', encoding='utf-8') as f:
-        result = yaml.load(f)
+        result = yaml.safe_load(f)
     return result
 
 
@@ -68,6 +74,10 @@ def remove_calendar(service, id):
     calendar.delete()
     print('removed: {}'.format(id))
 
+def rename_calendar(service, id, summary):
+    calendar = {'summary': summary}
+    service.calendars().patch(body=calendar, calendarId=id).execute()
+    print('{}: {}'.format(summary, id))
 
 def main():
     args = parse_args()
@@ -87,6 +97,8 @@ def main():
         add_owner(service, args.id, args.owner_email)
     elif 'remove' == args.command:
         remove_calendar(service, args.id)
+    elif 'rename' == args.command:
+        rename_calendar(service, args.id, args.summary)
 
 if __name__ == '__main__':
     main()
