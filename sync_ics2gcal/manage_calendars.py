@@ -86,8 +86,7 @@ def main():
     if 'logging' in config:
         logging.config.dictConfig(config['logging'])
 
-    srv_acc_file = config['service_account']
-    service = GoogleCalendarService.from_srv_acc_file(srv_acc_file)
+    service = GoogleCalendarService.from_config(config)
 
     if 'list' == args.command:
         list_calendars(service)

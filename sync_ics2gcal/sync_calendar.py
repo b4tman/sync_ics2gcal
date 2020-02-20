@@ -34,14 +34,13 @@ def main():
 
     calendarId = config['calendar']['google_id']
     ics_filepath = config['calendar']['source']
-    srv_acc_file = config['service_account']
 
     start = get_start_date(config['start_from'])
 
     converter = CalendarConverter()
     converter.load(ics_filepath)
 
-    service = GoogleCalendarService.from_srv_acc_file(srv_acc_file)
+    service = GoogleCalendarService.from_config(config)
     gcalendar = GoogleCalendar(service, calendarId)
 
     sync = CalendarSync(gcalendar, converter)

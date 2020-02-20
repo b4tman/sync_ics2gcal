@@ -50,7 +50,8 @@ wget https://raw.githubusercontent.com/b4tman/sync_ics2gcal/develop/sample-confi
 * `start_from` - start date:
   * full format datetime, `2018-04-03T13:23:25.000001Z` for example
   * or just `now`
-* `service_account` - service account filename
+* *(Optional)* `service_account` - service account filename, remove it from config to use [default credentials](https://developers.google.com/identity/protocols/application-default-credentials)
+* *(Optional)* `logging` - [config](https://docs.python.org/3.8/library/logging.config.html#dictionary-schema-details) to setup logging
 * `google_id` - target google calendar id, `my-calendar@group.calendar.google.com` for example
 * `source` - source `.ics` filename, `my-calendar.ics` for example
 

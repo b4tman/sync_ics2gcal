@@ -15,6 +15,21 @@ class GoogleCalendarService():
     """
 
     @staticmethod
+    def default():
+        """make service Resource from default credentials (authorize)
+        ( https://developers.google.com/identity/protocols/application-default-credentials )
+        ( https://googleapis.dev/python/google-auth/latest/reference/google.auth.html#google.auth.default )
+
+        Returns:
+            service Resource
+        """
+
+        scopes = ['https://www.googleapis.com/auth/calendar']
+        credentials, _ = google.auth.default(scopes=scopes)
+        service = discovery.build('calendar', 'v3', credentials=credentials)
+        return service
+    
+    @staticmethod
     def from_srv_acc_file(service_account_file):
         """make service Resource from service account filename (authorize)
 
@@ -26,6 +41,26 @@ class GoogleCalendarService():
         credentials = service_account.Credentials.from_service_account_file(service_account_file)
         scoped_credentials = credentials.with_scopes(scopes)
         service = discovery.build('calendar', 'v3', credentials=scoped_credentials)
+        return service
+    
+    @staticmethod
+    def from_config(config):
+        """make service Resource from config dict
+
+        Arguments:
+        config -- dict() config with keys:
+                    (optional) service_account: - service account filename
+                    if key not in dict then default credentials will be used
+                    ( https://developers.google.com/identity/protocols/application-default-credentials )
+
+        Returns:
+            service Resource
+        """
+
+        if 'service_account' in config:
+            service = GoogleCalendarService.from_srv_acc_file(config['service_account'])
+        else:
+            service = GoogleCalendarService.default()
         return service
 
 def select_event_key(event):
