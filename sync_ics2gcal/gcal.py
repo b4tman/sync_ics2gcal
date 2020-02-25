@@ -26,7 +26,7 @@ class GoogleCalendarService():
 
         scopes = ['https://www.googleapis.com/auth/calendar']
         credentials, _ = google.auth.default(scopes=scopes)
-        service = discovery.build('calendar', 'v3', credentials=credentials)
+        service = discovery.build('calendar', 'v3', credentials=credentials, cache_discovery=False)
         return service
     
     @staticmethod
@@ -40,7 +40,7 @@ class GoogleCalendarService():
         scopes = ['https://www.googleapis.com/auth/calendar']
         credentials = service_account.Credentials.from_service_account_file(service_account_file)
         scoped_credentials = credentials.with_scopes(scopes)
-        service = discovery.build('calendar', 'v3', credentials=scoped_credentials)
+        service = discovery.build('calendar', 'v3', credentials=scoped_credentials, cache_discovery=False)
         return service
     
     @staticmethod
