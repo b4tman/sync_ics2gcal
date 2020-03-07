@@ -36,6 +36,20 @@ def parse_args():
         'id', action='store', help='calendar id')
     parser_rename.add_argument(
         'summary', action='store', help='new summary')
+    parser_get = command_subparsers.add_parser(
+        'get', help='get calendar property')
+    parser_get.add_argument(
+        'id', action='store', help='calendar id')
+    parser_get.add_argument(
+        'property', action='store', help='property key')
+    parser_get = command_subparsers.add_parser(
+        'set', help='set calendar property')
+    parser_get.add_argument(
+        'id', action='store', help='calendar id')
+    parser_get.add_argument(
+        'property', action='store', help='property key')
+    parser_get.add_argument(
+        'property_value', action='store', help='property value')
     
     args = parser.parse_args()
     if args.command is None:
@@ -84,6 +98,15 @@ def rename_calendar(service, id, summary):
     service.calendars().patch(body=calendar, calendarId=id).execute()
     print('{}: {}'.format(summary, id))
 
+def get_calendar_property(service, id, property):
+    response = service.calendarList().get(calendarId=id, fields=property).execute()
+    print(response.get(property))
+
+def set_calendar_property(service, id, property, property_value):
+    body = {property: property_value}
+    response = service.calendarList().patch(body=body, calendarId=id).execute()
+    print(response)
+
 def main():
     args = parse_args()
     config = load_config()
@@ -103,6 +126,10 @@ def main():
         remove_calendar(service, args.id)
     elif 'rename' == args.command:
         rename_calendar(service, args.id, args.summary)
+    elif 'get' == args.command:
+        get_calendar_property(service, args.id, args.property)
+    elif 'set' == args.command:
+        set_calendar_property(service, args.id, args.property, args.property_value)
 
 if __name__ == '__main__':
     main()
