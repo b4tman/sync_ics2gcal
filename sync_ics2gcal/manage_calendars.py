@@ -69,8 +69,16 @@ def load_config():
 
 
 def list_calendars(service):
-    response = service.calendarList().list(fields='items(id,summary)').execute()
-    for calendar in response.get('items'):
+    calendars = []
+    page_token = None
+    while True:
+        response = service.calendarList().list(fields='nextPageToken,items(id,summary)', pageToken=page_token).execute()
+        if 'items' in response:
+                calendars.extend(response['items'])
+                page_token = response.get('nextPageToken')
+                if not page_token:
+                    break
+    for calendar in calendars:
         print('{summary}: {id}'.format_map(calendar))
 
 
