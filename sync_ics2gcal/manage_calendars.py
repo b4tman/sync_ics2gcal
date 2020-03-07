@@ -44,8 +44,13 @@ def parse_args():
 
 
 def load_config():
-    with open('config.yml', 'r', encoding='utf-8') as f:
-        result = yaml.safe_load(f)
+    result = None
+    try:
+        with open('config.yml', 'r', encoding='utf-8') as f:
+            result = yaml.safe_load(f)
+    except FileNotFoundError:
+        pass
+        
     return result
 
 
@@ -83,7 +88,7 @@ def main():
     args = parse_args()
     config = load_config()
 
-    if 'logging' in config:
+    if (not config is None) and 'logging' in config:
         logging.config.dictConfig(config['logging'])
 
     service = GoogleCalendarService.from_config(config)
