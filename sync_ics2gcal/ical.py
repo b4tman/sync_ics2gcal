@@ -17,7 +17,10 @@ def format_datetime_utc(value):
         value = datetime.datetime(
             value.year, value.month, value.day, tzinfo=utc)
     value = value.replace(microsecond=1)
-    return utc.normalize(value.astimezone(utc)).replace(tzinfo=None).isoformat() + 'Z'
+
+    return utc.normalize(
+        value.astimezone(utc)
+    ).replace(tzinfo=None).isoformat() + 'Z'
 
 
 def gcal_date_or_dateTime(value, check_value=None):
@@ -145,7 +148,9 @@ class EventConverter(Event):
         self._put_to_gcal(
             event, 'updated', self._datetime_str_prop, 'LAST-MODIFIED')
         self._put_to_gcal(
-            event, 'transparency', lambda prop: self._str_prop(prop).lower(), 'TRANSP')
+            event,
+            'transparency',
+            lambda prop: self._str_prop(prop).lower(), 'TRANSP')
 
         return event
 
@@ -160,7 +165,7 @@ class CalendarConverter():
         self.calendar = calendar
 
     def load(self, filename):
-        """ load calendar from ics file 
+        """ load calendar from ics file
         """
         with open(filename, 'r', encoding='utf-8') as f:
             self.calendar = Calendar.from_ical(f.read())
