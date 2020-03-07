@@ -25,8 +25,8 @@ class CalendarSync():
             key {str} -- name of key to compare (default: {'iCalUID'})
 
         Returns:
-            tuple -- (items_to_insert, 
-                      items_to_update, 
+            tuple -- (items_to_insert,
+                      items_to_update,
                       items_to_delete)
         """
 
@@ -59,7 +59,9 @@ class CalendarSync():
 
         def filter_updated(event_tuple):
             new, old = event_tuple
-            return dateutil.parser.parse(new['updated']) > dateutil.parser.parse(old['updated'])
+            new_date = dateutil.parser.parse(new['updated'])
+            old_date = dateutil.parser.parse(old['updated'])
+            return new_date > old_date
 
         self.to_update = list(filter(filter_updated, self.to_update))
 
@@ -87,11 +89,12 @@ class CalendarSync():
                 compare_dates = True
             elif 'dateTime' in event_start:
                 event_date = event_start['dateTime']
-            
+
             event_date = dateutil.parser.parse(event_date)
             if compare_dates:
                 date_cmp = datetime.date(date.year, date.month, date.day)
-                event_date = datetime.date(event_date.year, event_date.month, event_date.day)
+                event_date = datetime.date(
+                    event_date.year, event_date.month, event_date.day)
 
             return op(event_date, date_cmp)
 
@@ -157,8 +160,12 @@ class CalendarSync():
         # exclude outdated events from 'to_update' list, by 'updated' field
         self._filter_events_to_update()
 
-        self.logger.info('prepared to sync: ( insert: %d, update: %d, delete: %d )',
-                         len(self.to_insert), len(self.to_update), len(self.to_delete))
+        self.logger.info(
+            'prepared to sync: ( insert: %d, update: %d, delete: %d )',
+            len(self.to_insert),
+            len(self.to_update),
+            len(self.to_delete)
+        )
 
     def apply(self):
         """apply sync (insert, update, delete), using prepared lists of events
