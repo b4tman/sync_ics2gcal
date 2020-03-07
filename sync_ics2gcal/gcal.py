@@ -44,7 +44,7 @@ class GoogleCalendarService():
         return service
     
     @staticmethod
-    def from_config(config):
+    def from_config(config=None):
         """make service Resource from config dict
 
         Arguments:
@@ -52,12 +52,13 @@ class GoogleCalendarService():
                     (optional) service_account: - service account filename
                     if key not in dict then default credentials will be used
                     ( https://developers.google.com/identity/protocols/application-default-credentials )
+               -- None: default credentials will be used
 
         Returns:
             service Resource
         """
 
-        if 'service_account' in config:
+        if (not config is None) and 'service_account' in config:
             service = GoogleCalendarService.from_srv_acc_file(config['service_account'])
         else:
             service = GoogleCalendarService.default()
