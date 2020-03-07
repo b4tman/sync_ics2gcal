@@ -1,9 +1,7 @@
 import argparse
-import datetime
 import logging.config
 
 import yaml
-from pytz import utc
 
 from . import GoogleCalendar, GoogleCalendarService
 
@@ -15,18 +13,22 @@ def parse_args():
     # list
     parser_list = command_subparsers.add_parser('list', help='list calendars')
     parser_list.add_argument(
-        '--show-hidden', default=False, action='store_true', help='show hidden calendars')
+        '--show-hidden', default=False,
+        action='store_true', help='show hidden calendars')
     parser_list.add_argument(
-        '--show-deleted', default=False, action='store_true', help='show deleted calendars')
+        '--show-deleted', default=False,
+        action='store_true', help='show deleted calendars')
     # create
     parser_create = command_subparsers.add_parser(
         'create', help='create calendar')
     parser_create.add_argument(
         'summary', action='store', help='new calendar summary')
     parser_create.add_argument('--timezone', action='store',
-                               default=None, required=False, help='new calendar timezone')
+                               default=None, required=False,
+                               help='new calendar timezone')
     parser_create.add_argument(
-        '--public', default=False, action='store_true', help='make calendar public')
+        '--public', default=False,
+        action='store_true', help='make calendar public')
     # add_owner
     parser_add_owner = command_subparsers.add_parser(
         'add_owner', help='add owner to calendar')
@@ -80,13 +82,15 @@ def load_config():
 
 
 def list_calendars(service, show_hidden, show_deleted):
+    fields = 'nextPageToken,items(id,summary)'
     calendars = []
     page_token = None
     while True:
-        response = service.calendarList().list(fields='nextPageToken,items(id,summary)',
+        response = service.calendarList().list(fields=fields,
                                                pageToken=page_token,
                                                showHidden=show_hidden,
-                                               showDeleted=show_deleted).execute()
+                                               showDeleted=show_deleted
+                                               ).execute()
         if 'items' in response:
             calendars.extend(response['items'])
             page_token = response.get('nextPageToken')
@@ -123,7 +127,8 @@ def rename_calendar(service, id, summary):
 
 
 def get_calendar_property(service, id, property):
-    response = service.calendarList().get(calendarId=id, fields=property).execute()
+    response = service.calendarList().get(calendarId=id,
+                                          fields=property).execute()
     print(response.get(property))
 
 
@@ -137,7 +142,7 @@ def main():
     args = parse_args()
     config = load_config()
 
-    if (not config is None) and 'logging' in config:
+    if config is not None and 'logging' in config:
         logging.config.dictConfig(config['logging'])
 
     service = GoogleCalendarService.from_config(config)
