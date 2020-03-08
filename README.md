@@ -75,6 +75,8 @@ subcomands:
 * **add_owner** - add owner to calendar
 * **remove** - remove calendar
 * **rename** - rename calendar
+* **get** - get calendar property (see [CalendarList resource](https://developers.google.com/calendar/v3/reference/calendarList#resource))
+* **set** - set calendar property
 
 Use **-h** for more info.
 
