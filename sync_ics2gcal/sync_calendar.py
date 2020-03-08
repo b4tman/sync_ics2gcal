@@ -11,6 +11,7 @@ from . import (
     CalendarSync
 )
 
+
 def load_config():
     with open('config.yml', 'r', encoding='utf-8') as f:
         result = yaml.safe_load(f)
@@ -18,7 +19,7 @@ def load_config():
 
 
 def get_start_date(date_str):
-    result = datetime.datetime(1,1,1)
+    result = datetime.datetime(1, 1, 1)
     if 'now' == date_str:
         result = datetime.datetime.utcnow()
     else:
@@ -46,6 +47,7 @@ def main():
     sync = CalendarSync(gcalendar, converter)
     sync.prepare_sync(start)
     sync.apply()
+
 
 if __name__ == '__main__':
     main()
