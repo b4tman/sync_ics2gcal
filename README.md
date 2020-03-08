@@ -12,21 +12,21 @@ Python scripts for sync .ics file with Google calendar
 
 To install from [PyPI](https://pypi.org/project/sync-ics2gcal/) with [pip](https://pypi.python.org/pypi/pip), run:
 
-```
+```sh
 pip install sync-ics2gcal
 ```
 
-
 Or download source code and install:
 
-```
+```sh
 python setup.py install
 ```
 
 ## Configuration
 
 ### Create application in Google API Console
-1. Create a new project: https://console.developers.google.com/project
+
+1. Create a new project: [console.developers.google.com/project](https://console.developers.google.com/project)
 2. Choose the new project from the top right project dropdown (only if another project is selected)
 3. In the project Dashboard, choose "Library"
 4. Find and Enable "Google Calendar API"
@@ -38,15 +38,20 @@ python setup.py install
 10. Edit service account and click "Create key", choose JSON and download key file.
 
 ### Create working directory
+
 For example: `/home/user/myfolder`.
+
 1. Save service account key in file `service-account.json`.
 2. Download [sample config](https://github.com/b4tman/sync_ics2gcal/blob/develop/sample-config.yml) and save to file `config.yml`. For example:
-```
+
+```sh
 wget https://raw.githubusercontent.com/b4tman/sync_ics2gcal/develop/sample-config.yml -O config.yml
 ```
+
 3. *(Optional)* Place source `.ics` file, `my-calendar.ics` for example.
 
 ### Configuration parameters
+
 * `start_from` - start date:
   * full format datetime, `2018-04-03T13:23:25.000001Z` for example
   * or just `now`
@@ -55,16 +60,16 @@ wget https://raw.githubusercontent.com/b4tman/sync_ics2gcal/develop/sample-confi
 * `google_id` - target google calendar id, `my-calendar@group.calendar.google.com` for example
 * `source` - source `.ics` filename, `my-calendar.ics` for example
 
-
 ## Usage
 
 ### Manage calendars
 
-```
+```sh
 manage-ics2gcal <subcommand> [-h] [options]
 ```
 
 subcomands:
+
 * **list** - list calendars
 * **create** - create calendar
 * **add_owner** - add owner to calendar
@@ -76,15 +81,15 @@ Use **-h** for more info.
 ### Sync calendar
 
 just type:
-```
+
+```sh
 sync-ics2gcal
 ```
-
 
 ## How it works
 
 ![How it works](how-it-works.png)
 
-
 ## License
+
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fb4tman%2Fsync_ics2gcal.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fb4tman%2Fsync_ics2gcal?ref=badge_large)
