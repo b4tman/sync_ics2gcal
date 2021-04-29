@@ -2,8 +2,10 @@ config.yml
 service-account.json
 *.pyc
 my-test*.ics
-.vscode/*
+.vscode/
+.idea/
 /dist/
 /*.egg-info/
 /build/
 /.eggs/
+venv/
