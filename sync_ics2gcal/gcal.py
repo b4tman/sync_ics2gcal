@@ -16,7 +16,7 @@ class GoogleCalendarService:
     """
 
     @staticmethod
-    def default() -> discovery.Resource:
+    def default():
         """make service Resource from default credentials (authorize)
         ( https://developers.google.com/identity/protocols/application-default-credentials )
         ( https://googleapis.dev/python/google-auth/latest/reference/google.auth.html#google.auth.default )
@@ -29,7 +29,7 @@ class GoogleCalendarService:
         return service
 
     @staticmethod
-    def from_srv_acc_file(service_account_file: str) -> discovery.Resource:
+    def from_srv_acc_file(service_account_file: str):
         """make service Resource from service account filename (authorize)
         """
 
@@ -43,7 +43,7 @@ class GoogleCalendarService:
         return service
 
     @staticmethod
-    def from_config(config: Optional[Dict[str, Optional[str]]] = None) -> discovery.Resource:
+    def from_config(config: Optional[Dict[str, Optional[str]]] = None):
         """make service Resource from config dict
 
         Arguments:
@@ -119,7 +119,7 @@ class GoogleCalendar:
                                  action, key, event.get(key))
         return callback
 
-    def list_events_from(self, start: datetime) -> List[Any]:
+    def list_events_from(self, start: datetime) -> List[Dict[str, Any]]:
         """ list events from calendar, where start date >= start
         """
         fields = 'nextPageToken,items(id,iCalUID,updated)'
@@ -141,7 +141,7 @@ class GoogleCalendar:
         self.logger.info('%d events listed', len(events))
         return events
 
-    def find_exists(self, events: List) -> Tuple[List[Tuple[Any, Any]], List[Any]]:
+    def find_exists(self, events: List) -> Tuple[List[Tuple[Dict[str, Any], Dict[str, Any]]], List[Dict[str, Any]]]:
         """ find existing events from list, by 'iCalUID' field
 
         Arguments:
@@ -189,7 +189,7 @@ class GoogleCalendar:
                          len(exists), len(not_found))
         return exists, not_found
 
-    def insert_events(self, events: List[Any]):
+    def insert_events(self, events: List[Dict[str, Any]]):
         """ insert list of events
 
         Arguments:
@@ -211,7 +211,7 @@ class GoogleCalendar:
             i += 1
         batch.execute()
 
-    def patch_events(self, event_tuples: List[Tuple[Any, Any]]):
+    def patch_events(self, event_tuples: List[Tuple[Dict[str, Any], Dict[str, Any]]]):
         """ patch (update) events
 
         Arguments:
@@ -234,7 +234,7 @@ class GoogleCalendar:
             i += 1
         batch.execute()
 
-    def update_events(self, event_tuples: List[Tuple[Any, Any]]):
+    def update_events(self, event_tuples: List[Tuple[Dict[str, Any], Dict[str, Any]]]):
         """ update events
 
         Arguments:
@@ -257,7 +257,7 @@ class GoogleCalendar:
             i += 1
         batch.execute()
 
-    def delete_events(self, events: List[Any]):
+    def delete_events(self, events: List[Dict[str, Any]]):
         """ delete events
 
         Arguments:
