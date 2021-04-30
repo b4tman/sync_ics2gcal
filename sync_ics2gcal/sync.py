@@ -117,8 +117,7 @@ class CalendarSync:
         return list(filter(filter_by_date, events))
 
     @staticmethod
-    def _tz_aware_datetime(date: Union[datetime.date, datetime.datetime]) \
-            -> Union[datetime.date, datetime.datetime]:
+    def _tz_aware_datetime(date: Union[datetime.date, datetime.datetime]) -> datetime.datetime:
         """make tz aware datetime from datetime/date (utc if no tzinfo)
 
         Arguments:
