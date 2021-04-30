@@ -86,7 +86,7 @@ class GoogleCalendar:
 
     logger = logging.getLogger('GoogleCalendar')
 
-    def __init__(self, service: discovery.Resource, calendarId: str):
+    def __init__(self, service: discovery.Resource, calendarId: Optional[str]):
         self.service: discovery.Resource = service
         self.calendarId: str = calendarId
 
