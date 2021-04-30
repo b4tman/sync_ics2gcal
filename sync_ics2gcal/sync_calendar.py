@@ -1,3 +1,5 @@
+from typing import Dict, Any
+
 import yaml
 
 import dateutil.parser
@@ -12,14 +14,13 @@ from . import (
 )
 
 
-def load_config():
+def load_config() -> Dict[str, Any]:
     with open('config.yml', 'r', encoding='utf-8') as f:
         result = yaml.safe_load(f)
     return result
 
 
-def get_start_date(date_str):
-    result = datetime.datetime(1, 1, 1)
+def get_start_date(date_str: str) -> datetime.datetime:
     if 'now' == date_str:
         result = datetime.datetime.utcnow()
     else:
@@ -33,8 +34,8 @@ def main():
     if 'logging' in config:
         logging.config.dictConfig(config['logging'])
 
-    calendarId = config['calendar']['google_id']
-    ics_filepath = config['calendar']['source']
+    calendarId: str = config['calendar']['google_id']
+    ics_filepath: str = config['calendar']['source']
 
     start = get_start_date(config['start_from'])
 

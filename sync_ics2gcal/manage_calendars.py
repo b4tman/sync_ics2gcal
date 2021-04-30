@@ -1,5 +1,6 @@
 import argparse
 import logging.config
+from typing import Optional, Dict, Any
 
 import yaml
 
@@ -70,7 +71,7 @@ def parse_args():
     return args
 
 
-def load_config():
+def load_config() -> Optional[Dict[str, Any]]:
     result = None
     try:
         with open('config.yml', 'r', encoding='utf-8') as f:
@@ -81,7 +82,7 @@ def load_config():
     return result
 
 
-def list_calendars(service, show_hidden, show_deleted):
+def list_calendars(service, show_hidden: bool, show_deleted: bool) -> None:
     fields = 'nextPageToken,items(id,summary)'
     calendars = []
     page_token = None
@@ -100,7 +101,7 @@ def list_calendars(service, show_hidden, show_deleted):
         print('{summary}: {id}'.format_map(calendar))
 
 
-def create_calendar(service, summary, timezone, public):
+def create_calendar(service, summary: str, timezone: str, public: bool) -> None:
     calendar = GoogleCalendar(service, None)
     calendar.create(summary, timezone)
     if public:
@@ -108,33 +109,33 @@ def create_calendar(service, summary, timezone, public):
     print('{}: {}'.format(summary, calendar.calendarId))
 
 
-def add_owner(service, id, owner_email):
-    calendar = GoogleCalendar(service, id)
+def add_owner(service, calendar_id: str, owner_email: str) -> None:
+    calendar = GoogleCalendar(service, calendar_id)
     calendar.add_owner(owner_email)
-    print('to {} added owner: {}'.format(id, owner_email))
+    print('to {} added owner: {}'.format(calendar_id, owner_email))
 
 
-def remove_calendar(service, id):
-    calendar = GoogleCalendar(service, id)
+def remove_calendar(service, calendar_id: str) -> None:
+    calendar = GoogleCalendar(service, calendar_id)
     calendar.delete()
-    print('removed: {}'.format(id))
+    print('removed: {}'.format(calendar_id))
 
 
-def rename_calendar(service, id, summary):
+def rename_calendar(service, calendar_id: str, summary: str) -> None:
     calendar = {'summary': summary}
-    service.calendars().patch(body=calendar, calendarId=id).execute()
-    print('{}: {}'.format(summary, id))
+    service.calendars().patch(body=calendar, calendarId=calendar_id).execute()
+    print('{}: {}'.format(summary, calendar_id))
 
 
-def get_calendar_property(service, id, property):
-    response = service.calendarList().get(calendarId=id,
-                                          fields=property).execute()
-    print(response.get(property))
+def get_calendar_property(service, calendar_id: str, property_name: str) -> None:
+    response = service.calendarList().get(calendarId=calendar_id,
+                                          fields=property_name).execute()
+    print(response.get(property_name))
 
 
-def set_calendar_property(service, id, property, property_value):
-    body = {property: property_value}
-    response = service.calendarList().patch(body=body, calendarId=id).execute()
+def set_calendar_property(service, calendar_id: str, property_name: str, property_value: str) -> None:
+    body = {property_name: property_value}
+    response = service.calendarList().patch(body=body, calendarId=calendar_id).execute()
     print(response)
 
 
