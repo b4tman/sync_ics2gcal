@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import pytest
 
 from sync_ics2gcal import CalendarConverter
@@ -26,11 +28,11 @@ LAST-MODIFIED:20180326T120235Z
 """
 
 
-def ics_test_cal(content):
+def ics_test_cal(content: str) -> str:
     return "BEGIN:VCALENDAR\r\n{}END:VCALENDAR\r\n".format(content)
 
 
-def ics_test_event(content):
+def ics_test_event(content: str) -> str:
     return ics_test_cal("BEGIN:VEVENT\r\n{}END:VEVENT\r\n".format(content))
 
 
@@ -68,7 +70,7 @@ def param_events_start_end(request):
     return request.param
 
 
-def test_event_start_end(param_events_start_end):
+def test_event_start_end(param_events_start_end: Tuple[str, str, str, str]):
     (date_type, ics_str, start, end) = param_events_start_end
     converter = CalendarConverter()
     converter.loads(ics_str)
