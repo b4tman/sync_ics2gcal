@@ -4,9 +4,11 @@ import google.auth
 from google.oauth2 import service_account
 from googleapiclient import discovery
 from pytz import utc
+from datetime import datetime
+from typing import List, Dict, Any, Callable, Tuple, Optional
 
 
-class GoogleCalendarService():
+class GoogleCalendarService:
     """class for make google calendar service Resource
 
     Returns:
@@ -18,9 +20,6 @@ class GoogleCalendarService():
         """make service Resource from default credentials (authorize)
         ( https://developers.google.com/identity/protocols/application-default-credentials )
         ( https://googleapis.dev/python/google-auth/latest/reference/google.auth.html#google.auth.default )
-
-        Returns:
-            service Resource
         """
 
         scopes = ['https://www.googleapis.com/auth/calendar']
@@ -30,11 +29,8 @@ class GoogleCalendarService():
         return service
 
     @staticmethod
-    def from_srv_acc_file(service_account_file):
+    def from_srv_acc_file(service_account_file: str):
         """make service Resource from service account filename (authorize)
-
-        Returns:
-            service Resource
         """
 
         scopes = ['https://www.googleapis.com/auth/calendar']
@@ -47,18 +43,15 @@ class GoogleCalendarService():
         return service
 
     @staticmethod
-    def from_config(config=None):
+    def from_config(config: Optional[Dict[str, Optional[str]]] = None):
         """make service Resource from config dict
 
         Arguments:
-        config -- dict() config with keys:
+        config -- config with keys:
                     (optional) service_account: - service account filename
                     if key not in dict then default credentials will be used
                     ( https://developers.google.com/identity/protocols/application-default-credentials )
                -- None: default credentials will be used
-
-        Returns:
-            service Resource
         """
 
         if config is not None and 'service_account' in config:
@@ -69,7 +62,7 @@ class GoogleCalendarService():
         return service
 
 
-def select_event_key(event):
+def select_event_key(event: Dict[str, Any]) -> Optional[str]:
     """select event key for logging
 
     Arguments:
@@ -87,17 +80,17 @@ def select_event_key(event):
     return key
 
 
-class GoogleCalendar():
+class GoogleCalendar:
     """class to interact with calendar on google
     """
 
     logger = logging.getLogger('GoogleCalendar')
 
-    def __init__(self, service, calendarId):
-        self.service = service
-        self.calendarId = calendarId
+    def __init__(self, service: discovery.Resource, calendarId: Optional[str]):
+        self.service: discovery.Resource = service
+        self.calendarId: str = calendarId
 
-    def _make_request_callback(self, action, events_by_req):
+    def _make_request_callback(self, action: str, events_by_req: List[Dict[str, Any]]) -> Callable:
         """make callback for log result of batch request
 
         Arguments:
@@ -126,7 +119,7 @@ class GoogleCalendar():
                                  action, key, event.get(key))
         return callback
 
-    def list_events_from(self, start):
+    def list_events_from(self, start: datetime) -> List[Dict[str, Any]]:
         """ list events from calendar, where start date >= start
         """
         fields = 'nextPageToken,items(id,iCalUID,updated)'
@@ -148,7 +141,7 @@ class GoogleCalendar():
         self.logger.info('%d events listed', len(events))
         return events
 
-    def find_exists(self, events):
+    def find_exists(self, events: List) -> Tuple[List[Tuple[Dict[str, Any], Dict[str, Any]]], List[Dict[str, Any]]]:
         """ find existing events from list, by 'iCalUID' field
 
         Arguments:
@@ -166,16 +159,16 @@ class GoogleCalendar():
 
         def list_callback(request_id, response, exception):
             found = False
-            event = events_by_req[int(request_id)]
+            cur_event = events_by_req[int(request_id)]
             if exception is None:
                 found = ([] != response['items'])
             else:
                 self.logger.error(
                     'exception %s, while listing event with UID: %s',
-                    str(exception), event['iCalUID'])
+                    str(exception), cur_event['iCalUID'])
             if found:
                 exists.append(
-                    (event, response['items'][0]))
+                    (cur_event, response['items'][0]))
             else:
                 not_found.append(events_by_req[int(request_id)])
 
@@ -196,7 +189,7 @@ class GoogleCalendar():
                          len(exists), len(not_found))
         return exists, not_found
 
-    def insert_events(self, events):
+    def insert_events(self, events: List[Dict[str, Any]]):
         """ insert list of events
 
         Arguments:
@@ -218,7 +211,7 @@ class GoogleCalendar():
             i += 1
         batch.execute()
 
-    def patch_events(self, event_tuples):
+    def patch_events(self, event_tuples: List[Tuple[Dict[str, Any], Dict[str, Any]]]):
         """ patch (update) events
 
         Arguments:
@@ -241,7 +234,7 @@ class GoogleCalendar():
             i += 1
         batch.execute()
 
-    def update_events(self, event_tuples):
+    def update_events(self, event_tuples: List[Tuple[Dict[str, Any], Dict[str, Any]]]):
         """ update events
 
         Arguments:
@@ -264,7 +257,7 @@ class GoogleCalendar():
             i += 1
         batch.execute()
 
-    def delete_events(self, events):
+    def delete_events(self, events: List[Dict[str, Any]]):
         """ delete events
 
         Arguments:
@@ -284,7 +277,7 @@ class GoogleCalendar():
             i += 1
         batch.execute()
 
-    def create(self, summary, timeZone=None):
+    def create(self, summary: str, timeZone: Optional[str] = None) -> Any:
         """create calendar
 
         Arguments:
@@ -328,7 +321,7 @@ class GoogleCalendar():
             body=rule_public
         ).execute()
 
-    def add_owner(self, email):
+    def add_owner(self, email: str):
         """add calendar owner by email
 
         Arguments:

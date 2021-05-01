@@ -1,22 +1,33 @@
 import datetime
-import dateutil.parser
 import logging
 import operator
+from typing import List, Any, Dict, Set, Tuple, Union, Callable
+
+import dateutil.parser
 from pytz import utc
 
+from .gcal import GoogleCalendar
+from .ical import CalendarConverter
 
-class CalendarSync():
+
+class CalendarSync:
     """class for syncronize calendar with google
     """
 
     logger = logging.getLogger('CalendarSync')
 
-    def __init__(self, gcalendar, converter):
-        self.gcalendar = gcalendar
-        self.converter = converter
+    def __init__(self, gcalendar: GoogleCalendar, converter: CalendarConverter):
+        self.gcalendar: GoogleCalendar = gcalendar
+        self.converter: CalendarConverter = converter
+        self.to_insert: List[Dict[str, Any]] = []
+        self.to_update: List[Tuple[Dict[str, Any], Dict[str, Any]]] = []
+        self.to_delete: List[Dict[str, Any]] = []
 
     @staticmethod
-    def _events_list_compare(items_src, items_dst, key='iCalUID'):
+    def _events_list_compare(items_src: List[Dict[str, Any]],
+                             items_dst: List[Dict[str, Any]],
+                             key: str = 'iCalUID') \
+            -> Tuple[List[Dict[str, Any]], List[Tuple[Dict[str, Any], Dict[str, Any]]], List[Dict[str, Any]]]:
         """ compare list of events by key
 
         Arguments:
@@ -30,16 +41,18 @@ class CalendarSync():
                       items_to_delete)
         """
 
-        def get_key(item): return item[key]
+        def get_key(item: Dict[str, Any]) -> str: return item[key]
 
-        keys_src = set(map(get_key, items_src))
-        keys_dst = set(map(get_key, items_dst))
+        keys_src: Set[str] = set(map(get_key, items_src))
+        keys_dst: Set[str] = set(map(get_key, items_dst))
 
         keys_to_insert = keys_src - keys_dst
         keys_to_update = keys_src & keys_dst
         keys_to_delete = keys_dst - keys_src
 
-        def items_by_keys(items, key_name, keys):
+        def items_by_keys(items: List[Dict[str, Any]],
+                          key_name: str,
+                          keys: Set[str]) -> List[Dict[str, Any]]:
             return list(filter(lambda item: item[key_name] in keys, items))
 
         items_to_insert = items_by_keys(items_src, key, keys_to_insert)
@@ -57,7 +70,7 @@ class CalendarSync():
         """ filter 'to_update' events by 'updated' datetime
         """
 
-        def filter_updated(event_tuple):
+        def filter_updated(event_tuple: Tuple[Dict[str, Any], Dict[str, Any]]) -> bool:
             new, old = event_tuple
             new_date = dateutil.parser.parse(new['updated'])
             old_date = dateutil.parser.parse(old['updated'])
@@ -66,7 +79,10 @@ class CalendarSync():
         self.to_update = list(filter(filter_updated, self.to_update))
 
     @staticmethod
-    def _filter_events_by_date(events, date, op):
+    def _filter_events_by_date(events: List[Dict[str, Any]],
+                               date: Union[datetime.date, datetime.datetime],
+                               op: Callable[[Union[datetime.date, datetime.datetime],
+                                             Union[datetime.date, datetime.datetime]], bool]) -> List[Dict[str, Any]]:
         """ filter events by start datetime
 
         Arguments:
@@ -78,10 +94,10 @@ class CalendarSync():
             list of filtred events
         """
 
-        def filter_by_date(event):
+        def filter_by_date(event: Dict[str, Any]) -> bool:
             date_cmp = date
-            event_start = event['start']
-            event_date = None
+            event_start: Dict[str, str] = event['start']
+            event_date: Union[datetime.date, datetime.datetime, str, None] = None
             compare_dates = False
 
             if 'date' in event_start:
@@ -101,7 +117,7 @@ class CalendarSync():
         return list(filter(filter_by_date, events))
 
     @staticmethod
-    def _tz_aware_datetime(date):
+    def _tz_aware_datetime(date: Union[datetime.date, datetime.datetime]) -> datetime.datetime:
         """make tz aware datetime from datetime/date (utc if no tzinfo)
 
         Arguments:
@@ -117,7 +133,7 @@ class CalendarSync():
             date = date.replace(tzinfo=utc)
         return date
 
-    def prepare_sync(self, start_date):
+    def prepare_sync(self, start_date: Union[datetime.date, datetime.datetime]) -> None:
         """prepare sync lists by comparsion of events
 
         Arguments:
@@ -135,27 +151,19 @@ class CalendarSync():
         events_src_past = CalendarSync._filter_events_by_date(
             events_src, start_date, operator.lt)
 
-        events_src = None
-
         # first events comparsion
         self.to_insert, self.to_update, self.to_delete = CalendarSync._events_list_compare(
             events_src_pending, events_dst)
-
-        events_src_pending, events_dst = None, None
 
         # find in events 'to_delete' past events from source, for update (move to past)
         _, add_to_update, self.to_delete = CalendarSync._events_list_compare(
             events_src_past, self.to_delete)
         self.to_update.extend(add_to_update)
 
-        events_src_past = None
-
         # find if events 'to_insert' exists in gcalendar, for update them
         add_to_update, self.to_insert = self.gcalendar.find_exists(
             self.to_insert)
         self.to_update.extend(add_to_update)
-
-        add_to_update = None
 
         # exclude outdated events from 'to_update' list, by 'updated' field
         self._filter_events_to_update()
@@ -167,14 +175,21 @@ class CalendarSync():
             len(self.to_delete)
         )
 
-    def apply(self):
-        """apply sync (insert, update, delete), using prepared lists of events
+    def clear(self) -> None:
+        """ clear prepared sync lists (insert, update, delete)
+        """
+        self.to_insert.clear()
+        self.to_update.clear()
+        self.to_delete.clear()
+
+    def apply(self) -> None:
+        """ apply sync (insert, update, delete), using prepared lists of events
         """
 
         self.gcalendar.insert_events(self.to_insert)
         self.gcalendar.update_events(self.to_update)
         self.gcalendar.delete_events(self.to_delete)
 
-        self.logger.info('sync done')
+        self.clear()
 
-        self.to_insert, self.to_update, self.to_delete = [], [], []
+        self.logger.info('sync done')
