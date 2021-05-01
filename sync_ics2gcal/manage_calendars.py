@@ -18,6 +18,36 @@ def load_config(filename: str) -> Optional[Dict[str, Any]]:
     return result
 
 
+class PropertyCommands:
+    """ get/set google calendar properties """
+
+    def __init__(self, _service):
+        self._service = _service
+
+    def get(self, calendar_id: str, property_name: str) -> None:
+        """ get calendar property
+
+        Args:
+            calendar_id: calendar id
+            property_name: property key
+        """
+        response = self._service.calendarList().get(calendarId=calendar_id,
+                                                    fields=property_name).execute()
+        print(response.get(property_name))
+
+    def set(self, calendar_id: str, property_name: str, property_value: str) -> None:
+        """ set calendar property
+
+        Args:
+            calendar_id: calendar id
+            property_name: property key
+            property_value: property value
+        """
+        body = {property_name: property_value}
+        response = self._service.calendarList().patch(body=body, calendarId=calendar_id).execute()
+        print(response)
+
+
 class Commands:
     """ manage google calendars in service account """
 
@@ -31,6 +61,7 @@ class Commands:
         if self._config is not None and 'logging' in self._config:
             logging.config.dictConfig(self._config['logging'])
         self._service = GoogleCalendarService.from_config(self._config)
+        self.property = PropertyCommands(self._service)
 
     def list(self, show_hidden: bool = False, show_deleted: bool = False) -> None:
         """ list calendars
@@ -103,29 +134,6 @@ class Commands:
         calendar = {'summary': summary}
         self._service.calendars().patch(body=calendar, calendarId=calendar_id).execute()
         print('{}: {}'.format(summary, calendar_id))
-
-    def get(self, calendar_id: str, property_name: str) -> None:
-        """ get calendar property
-
-        Args:
-            calendar_id: calendar id
-            property_name: property key
-        """
-        response = self._service.calendarList().get(calendarId=calendar_id,
-                                                    fields=property_name).execute()
-        print(response.get(property_name))
-
-    def set(self, calendar_id: str, property_name: str, property_value: str) -> None:
-        """ set calendar property
-
-        Args:
-            calendar_id: calendar id
-            property_name: property key
-            property_value: property value
-        """
-        body = {property_name: property_value}
-        response = self._service.calendarList().patch(body=body, calendarId=calendar_id).execute()
-        print(response)
 
 
 def main():

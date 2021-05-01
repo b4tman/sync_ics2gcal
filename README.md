@@ -63,18 +63,23 @@ wget https://raw.githubusercontent.com/b4tman/sync_ics2gcal/develop/sample-confi
 ### Manage calendars
 
 ```sh
-manage-ics2gcal <subcommand> [-h] [options]
+manage-ics2gcal GROUP | COMMAND
 ```
 
-subcomands:
+**GROUPS**:
+
+* **property** - get/set properties (see [CalendarList resource](https://developers.google.com/calendar/v3/reference/calendarList#resource)), subcommands:
+  - **get** - get calendar property
+  - **set** - set calendar property
+
+**COMMANDS**:
 
 * **list** - list calendars
 * **create** - create calendar
 * **add_owner** - add owner to calendar
 * **remove** - remove calendar
 * **rename** - rename calendar
-* **get** - get calendar property (see [CalendarList resource](https://developers.google.com/calendar/v3/reference/calendarList#resource))
-* **set** - set calendar property
+
 
 Use **-h** for more info.
 
