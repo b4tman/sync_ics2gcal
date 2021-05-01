@@ -3,15 +3,16 @@ import hashlib
 import operator
 from copy import deepcopy
 from random import shuffle
+from typing import Union, List, Dict, Optional
 
 import dateutil.parser
 import pytest
 from pytz import timezone, utc
 
-from gcal_sync import CalendarSync
+from sync_ics2gcal import CalendarSync
 
 
-def sha1(string):
+def sha1(string: Union[str, bytes]) -> str:
     if isinstance(string, str):
         string = string.encode('utf8')
     h = hashlib.sha1()
@@ -19,55 +20,57 @@ def sha1(string):
     return h.hexdigest()
 
 
-def gen_events(start, stop, start_time, no_time=False):
+def gen_events(start: int,
+               stop: int,
+               start_time: Union[datetime.datetime, datetime.date],
+               no_time: bool = False) -> List[Dict[str, Union[str, Dict[str, str]]]]:
     if no_time:
         start_time = datetime.date(
             start_time.year, start_time.month, start_time.day)
-        duration = datetime.date(1, 1, 2) - datetime.date(1, 1, 1)
-        date_key = "date"
-        suff = ''
+        duration: datetime.timedelta = datetime.date(1, 1, 2) - datetime.date(1, 1, 1)
+        date_key: str = "date"
+        date_end: str = ''
     else:
         start_time = utc.normalize(
             start_time.astimezone(utc)).replace(tzinfo=None)
-        duration = datetime.datetime(
-            1, 1, 1, 2) - datetime.datetime(1, 1, 1, 1)
-        date_key = "dateTime"
-        suff = 'Z'
+        duration: datetime.timedelta = datetime.datetime(1, 1, 1, 2) - datetime.datetime(1, 1, 1, 1)
+        date_key: str = "dateTime"
+        date_end: str = 'Z'
 
-    result = []
+    result: List[Dict[str, Union[str, Dict[str, str]]]] = []
     for i in range(start, stop):
         event_start = start_time + (duration * i)
         event_end = event_start + duration
 
-        updated = event_start
+        updated: Union[datetime.datetime, datetime.date] = event_start
         if no_time:
             updated = datetime.datetime(
                 updated.year, updated.month, updated.day, 0, 0, 0, 1, tzinfo=utc)
 
-        event = {
+        event: Dict[str, Union[str, Dict[str, str]]] = {
             'summary': 'test event __ {}'.format(i),
             'location': 'la la la {}'.format(i),
             'description': 'test TEST -- test event {}'.format(i),
             "iCalUID": "{}@test.com".format(sha1("test - event {}".format(i))),
             "updated": updated.isoformat() + 'Z',
-            "created": updated.isoformat() + 'Z'
+            "created": updated.isoformat() + 'Z',
+            'start': {date_key: event_start.isoformat() + date_end},
+            'end': {date_key: event_end.isoformat() + date_end}
         }
-        event['start'] = {date_key: event_start.isoformat() + suff}
-        event['end'] = {date_key: event_end.isoformat() + suff}
         result.append(event)
     return result
 
 
-def gen_list_to_compare(start, stop):
-    result = []
+def gen_list_to_compare(start: int, stop: int) -> List[Dict[str, str]]:
+    result: List[Dict[str, str]] = []
     for i in range(start, stop):
         result.append({'iCalUID': 'test{:06d}'.format(i)})
     return result
 
 
-def get_start_date(event):
-    event_start = event['start']
-    start_date = None
+def get_start_date(event: Dict[str, Union[str, Dict[str, str]]]) -> Union[datetime.datetime, datetime.date]:
+    event_start: Dict[str, str] = event['start']
+    start_date: Optional[str] = None
     is_date = False
     if 'date' in event_start:
         start_date = event_start['date']
@@ -113,7 +116,7 @@ def test_compare():
 
 
 @pytest.mark.parametrize("no_time", [True, False], ids=['date', 'dateTime'])
-def test_filter_events_by_date(no_time):
+def test_filter_events_by_date(no_time: bool):
     msk = timezone('Europe/Moscow')
     now = utc.localize(datetime.datetime.utcnow())
     msk_now = msk.normalize(now.astimezone(msk))
