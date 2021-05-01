@@ -28,12 +28,13 @@ setuptools.setup(
         'Programming Language :: Python :: 3.9',
     ],
     python_requires='>=3.6',
-    install_requires = [
+    install_requires=[
         'google-auth>=1.5.0',
         'google-api-python-client>=1.7.0',
         'icalendar>=4.0.1',
         'pytz',
-        'PyYAML>=3.13'
+        'PyYAML>=3.13',
+        'fire>=0.4.0'
     ],
     entry_points={
         "console_scripts": [
