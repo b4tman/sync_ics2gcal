@@ -1,13 +1,13 @@
 import datetime
 import logging
 import operator
-from typing import List, Any, Dict, Set, Tuple, Union, Callable
+from typing import List, Dict, Set, Tuple, Union, Callable
 
 import dateutil.parser
 from pytz import utc
 
-from .gcal import GoogleCalendar
-from .ical import CalendarConverter
+from .gcal import GoogleCalendar, EventData, EventList, EventTuple
+from .ical import CalendarConverter, DateDateTime
 
 
 class CalendarSync:
@@ -19,15 +19,15 @@ class CalendarSync:
     def __init__(self, gcalendar: GoogleCalendar, converter: CalendarConverter):
         self.gcalendar: GoogleCalendar = gcalendar
         self.converter: CalendarConverter = converter
-        self.to_insert: List[Dict[str, Any]] = []
-        self.to_update: List[Tuple[Dict[str, Any], Dict[str, Any]]] = []
-        self.to_delete: List[Dict[str, Any]] = []
+        self.to_insert: EventList = []
+        self.to_update: List[EventTuple] = []
+        self.to_delete: EventList = []
 
     @staticmethod
-    def _events_list_compare(items_src: List[Dict[str, Any]],
-                             items_dst: List[Dict[str, Any]],
+    def _events_list_compare(items_src: EventList,
+                             items_dst: EventList,
                              key: str = 'iCalUID') \
-            -> Tuple[List[Dict[str, Any]], List[Tuple[Dict[str, Any], Dict[str, Any]]], List[Dict[str, Any]]]:
+            -> Tuple[EventList, List[EventTuple], EventList]:
         """ compare list of events by key
 
         Arguments:
@@ -41,7 +41,7 @@ class CalendarSync:
                       items_to_delete)
         """
 
-        def get_key(item: Dict[str, Any]) -> str: return item[key]
+        def get_key(item: EventData) -> str: return item[key]
 
         keys_src: Set[str] = set(map(get_key, items_src))
         keys_dst: Set[str] = set(map(get_key, items_dst))
@@ -50,9 +50,9 @@ class CalendarSync:
         keys_to_update = keys_src & keys_dst
         keys_to_delete = keys_dst - keys_src
 
-        def items_by_keys(items: List[Dict[str, Any]],
+        def items_by_keys(items: EventList,
                           key_name: str,
-                          keys: Set[str]) -> List[Dict[str, Any]]:
+                          keys: Set[str]) -> EventList:
             return list(filter(lambda item: item[key_name] in keys, items))
 
         items_to_insert = items_by_keys(items_src, key, keys_to_insert)
@@ -70,7 +70,7 @@ class CalendarSync:
         """ filter 'to_update' events by 'updated' datetime
         """
 
-        def filter_updated(event_tuple: Tuple[Dict[str, Any], Dict[str, Any]]) -> bool:
+        def filter_updated(event_tuple: EventTuple) -> bool:
             new, old = event_tuple
             new_date = dateutil.parser.parse(new['updated'])
             old_date = dateutil.parser.parse(old['updated'])
@@ -79,10 +79,10 @@ class CalendarSync:
         self.to_update = list(filter(filter_updated, self.to_update))
 
     @staticmethod
-    def _filter_events_by_date(events: List[Dict[str, Any]],
-                               date: Union[datetime.date, datetime.datetime],
-                               op: Callable[[Union[datetime.date, datetime.datetime],
-                                             Union[datetime.date, datetime.datetime]], bool]) -> List[Dict[str, Any]]:
+    def _filter_events_by_date(events: EventList,
+                               date: DateDateTime,
+                               op: Callable[[DateDateTime,
+                                             DateDateTime], bool]) -> EventList:
         """ filter events by start datetime
 
         Arguments:
@@ -94,10 +94,10 @@ class CalendarSync:
             list of filtred events
         """
 
-        def filter_by_date(event: Dict[str, Any]) -> bool:
+        def filter_by_date(event: EventData) -> bool:
             date_cmp = date
             event_start: Dict[str, str] = event['start']
-            event_date: Union[datetime.date, datetime.datetime, str, None] = None
+            event_date: Union[DateDateTime, str, None] = None
             compare_dates = False
 
             if 'date' in event_start:
@@ -117,7 +117,7 @@ class CalendarSync:
         return list(filter(filter_by_date, events))
 
     @staticmethod
-    def _tz_aware_datetime(date: Union[datetime.date, datetime.datetime]) -> datetime.datetime:
+    def _tz_aware_datetime(date: DateDateTime) -> datetime.datetime:
         """make tz aware datetime from datetime/date (utc if no tzinfo)
 
         Arguments:
@@ -133,7 +133,7 @@ class CalendarSync:
             date = date.replace(tzinfo=utc)
         return date
 
-    def prepare_sync(self, start_date: Union[datetime.date, datetime.datetime]) -> None:
+    def prepare_sync(self, start_date: DateDateTime) -> None:
         """prepare sync lists by comparsion of events
 
         Arguments:

@@ -1,11 +1,15 @@
 import logging
+from datetime import datetime
+from typing import List, Dict, Any, Callable, Tuple, Optional, Union
 
 import google.auth
 from google.oauth2 import service_account
 from googleapiclient import discovery
 from pytz import utc
-from datetime import datetime
-from typing import List, Dict, Any, Callable, Tuple, Optional
+
+EventData = Dict[str, Union[str, 'EventData', None]]
+EventList = List[EventData]
+EventTuple = Tuple[EventData, EventData]
 
 
 class GoogleCalendarService:
@@ -62,7 +66,7 @@ class GoogleCalendarService:
         return service
 
 
-def select_event_key(event: Dict[str, Any]) -> Optional[str]:
+def select_event_key(event: EventData) -> Optional[str]:
     """select event key for logging
 
     Arguments:
@@ -90,7 +94,7 @@ class GoogleCalendar:
         self.service: discovery.Resource = service
         self.calendarId: str = calendarId
 
-    def _make_request_callback(self, action: str, events_by_req: List[Dict[str, Any]]) -> Callable:
+    def _make_request_callback(self, action: str, events_by_req: EventList) -> Callable:
         """make callback for log result of batch request
 
         Arguments:
@@ -117,9 +121,10 @@ class GoogleCalendar:
                     key = resp_key
                 self.logger.info('event %s ok, %s: %s',
                                  action, key, event.get(key))
+
         return callback
 
-    def list_events_from(self, start: datetime) -> List[Dict[str, Any]]:
+    def list_events_from(self, start: datetime) -> EventList:
         """ list events from calendar, where start date >= start
         """
         fields = 'nextPageToken,items(id,iCalUID,updated)'
@@ -141,7 +146,7 @@ class GoogleCalendar:
         self.logger.info('%d events listed', len(events))
         return events
 
-    def find_exists(self, events: List) -> Tuple[List[Tuple[Dict[str, Any], Dict[str, Any]]], List[Dict[str, Any]]]:
+    def find_exists(self, events: List) -> Tuple[List[EventTuple], EventList]:
         """ find existing events from list, by 'iCalUID' field
 
         Arguments:
@@ -189,7 +194,7 @@ class GoogleCalendar:
                          len(exists), len(not_found))
         return exists, not_found
 
-    def insert_events(self, events: List[Dict[str, Any]]):
+    def insert_events(self, events: EventList):
         """ insert list of events
 
         Arguments:
@@ -211,7 +216,7 @@ class GoogleCalendar:
             i += 1
         batch.execute()
 
-    def patch_events(self, event_tuples: List[Tuple[Dict[str, Any], Dict[str, Any]]]):
+    def patch_events(self, event_tuples: List[EventTuple]):
         """ patch (update) events
 
         Arguments:
@@ -234,7 +239,7 @@ class GoogleCalendar:
             i += 1
         batch.execute()
 
-    def update_events(self, event_tuples: List[Tuple[Dict[str, Any], Dict[str, Any]]]):
+    def update_events(self, event_tuples: List[EventTuple]):
         """ update events
 
         Arguments:
@@ -257,7 +262,7 @@ class GoogleCalendar:
             i += 1
         batch.execute()
 
-    def delete_events(self, events: List[Dict[str, Any]]):
+    def delete_events(self, events: EventList):
         """ delete events
 
         Arguments:

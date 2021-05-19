@@ -1,12 +1,16 @@
 import datetime
 import logging
-from typing import Union, Dict, Any, Callable, Optional, List
+from typing import Union, Dict, Callable, Optional
 
 from icalendar import Calendar, Event
 from pytz import utc
 
+from .gcal import EventData, EventList
 
-def format_datetime_utc(value: Union[datetime.date, datetime.datetime]) -> str:
+DateDateTime = Union[datetime.date, datetime.datetime]
+
+
+def format_datetime_utc(value: DateDateTime) -> str:
     """utc datetime as string from date or datetime value
 
     Arguments:
@@ -25,8 +29,8 @@ def format_datetime_utc(value: Union[datetime.date, datetime.datetime]) -> str:
     ).replace(tzinfo=None).isoformat() + 'Z'
 
 
-def gcal_date_or_dateTime(value: Union[datetime.date, datetime.datetime],
-                          check_value: Union[datetime.date, datetime.datetime, None] = None)\
+def gcal_date_or_dateTime(value: DateDateTime,
+                          check_value: Optional[DateDateTime] = None) \
         -> Dict[str, str]:
     """date or dateTime to gcal (start or end dict)
 
@@ -117,7 +121,7 @@ class EventConverter(Event):
             raise ValueError('no DTEND or DURATION')
         return result
 
-    def _put_to_gcal(self, gcal_event: Dict[str, Any],
+    def _put_to_gcal(self, gcal_event: EventData,
                      prop: str, func: Callable[[str], str],
                      ics_prop: Optional[str] = None):
         """get property from ical event if exist, and put to gcal event
@@ -134,7 +138,7 @@ class EventConverter(Event):
         if ics_prop in self:
             gcal_event[prop] = func(ics_prop)
 
-    def to_gcal(self) -> Dict[str, Any]:
+    def to_gcal(self) -> EventData:
         """Convert
 
         Returns:
@@ -182,7 +186,7 @@ class CalendarConverter:
         """
         self.calendar = Calendar.from_ical(string)
 
-    def events_to_gcal(self) -> List[Dict[str, Any]]:
+    def events_to_gcal(self) -> EventList:
         """Convert events to google calendar resources
         """
 
