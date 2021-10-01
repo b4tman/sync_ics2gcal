@@ -1,5 +1,5 @@
 google-auth==2.0.2
-google-api-python-client==2.19.0
+google-api-python-client==2.23.0
 icalendar==4.0.7
 pytz==2021.1
 PyYAML==5.4.1
