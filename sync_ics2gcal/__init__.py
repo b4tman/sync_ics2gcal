@@ -1,12 +1,16 @@
 
 from .ical import (
     CalendarConverter,
-    EventConverter
+    EventConverter,
+    DateDateTime
 )
 
 from .gcal import (
     GoogleCalendarService,
-    GoogleCalendar
+    GoogleCalendar,
+    EventData,
+    EventList,
+    EventTuple
 )
 
 from .sync import (
