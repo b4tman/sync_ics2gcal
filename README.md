@@ -14,10 +14,15 @@ To install from [PyPI](https://pypi.org/project/sync-ics2gcal/) with [pip](https
 pip install sync-ics2gcal
 ```
 
-Or download source code and install:
+Or download source code and install using poetry:
 
 ```sh
-python setup.py install
+# install poetry
+pip install poetry
+# install project and deps to virtualenv
+poetry install
+# run
+poetry run sync-ics2gcal
 ```
 
 ## Configuration
