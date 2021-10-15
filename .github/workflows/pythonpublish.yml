@@ -28,7 +28,6 @@ jobs:
       run: poetry build
     - name: Publish
       env:
-        REPO_USERNAME: __token__
-        REPO_PASSWORD: ${{ secrets.pypi_token }}
+        POETRY_PYPI_TOKEN_PYPI: ${{ secrets.pypi_token }}
       run: |
-        poetry publish -n -u $REPO_USERNAME -p $REPO_PASSWORD
+        poetry publish -n
