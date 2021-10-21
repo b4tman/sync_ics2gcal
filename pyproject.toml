@@ -19,17 +19,19 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = ">=3.6.1"
 google-auth = "2.2.1"
 google-api-python-client = "2.23.0"
 icalendar = "4.0.7"
 pytz = "2021.1"
 PyYAML = "5.4.1"
 fire = "0.4.0"
+pydantic = "^1.8.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
 flake8 = "^3.9.2"
+autopep8 = "^1.5.7"
 
 [tool.poetry.scripts]
 sync-ics2gcal = "sync_ics2gcal.sync_calendar:main"

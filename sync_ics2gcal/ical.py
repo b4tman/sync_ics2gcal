@@ -5,9 +5,54 @@ from typing import Union, Dict, Callable, Optional
 from icalendar import Calendar, Event
 from pytz import utc
 
+import pydantic
+
 from .gcal import EventData, EventList
 
 DateDateTime = Union[datetime.date, datetime.datetime]
+
+
+class GCal_DateDateTime(pydantic.BaseModel):
+    date: Optional[str] = pydantic.Field(default=None)
+    date_time: Optional[str] = pydantic.Field(alias='dateTime', default=None)
+    timezone: Optional[str] = pydantic.Field(alias='timeZone', default=None)
+
+    @pydantic.root_validator(allow_reuse=True)
+    def check_only_date_or_datetime(cls, values):
+        date = values.get('date', None)
+        date_time = values.get('date_time', None)
+        assert (date is None) != (date_time is None), \
+            'only date or date_time must be provided'
+        return values
+
+    @classmethod
+    def create_from(cls, value: DateDateTime) -> 'GCal_DateDateTime':
+        key: str = 'date'
+        str_value: str = ''
+        if type(value) is datetime.datetime:
+            key = 'date_time'
+            str_value = format_datetime_utc(value)
+        else:
+            str_value = value.isoformat()
+        return cls(**{key: str_value})
+
+    class Config:
+        allow_population_by_field_name = True
+
+
+class GCal_Event(pydantic.BaseModel):
+    created: Optional[str] = None
+    updated: Optional[str] = None
+    summary: Optional[str] = None
+    description: Optional[str] = None
+    location: Optional[str] = None
+    start: GCal_DateDateTime
+    end: GCal_DateDateTime
+    transparency: Optional[str] = None
+    ical_uid: str = pydantic.Field(alias='iCalUID')
+
+    class Config:
+        allow_population_by_field_name = True
 
 
 def format_datetime_utc(value: DateDateTime) -> str:
@@ -19,7 +64,7 @@ def format_datetime_utc(value: DateDateTime) -> str:
     Returns:
         utc datetime value as string in iso format
     """
-    if not isinstance(value, datetime.datetime):
+    if type(value) is datetime.date:
         value = datetime.datetime(
             value.year, value.month, value.day, tzinfo=utc)
     value = value.replace(microsecond=1)
@@ -85,7 +130,7 @@ class EventConverter(Event):
 
         return format_datetime_utc(self.decoded(prop))
 
-    def _gcal_start(self) -> Dict[str, str]:
+    def _gcal_start(self) -> GCal_DateDateTime:
         """ event start dict from icalendar event
 
         Raises:
@@ -96,9 +141,9 @@ class EventConverter(Event):
         """
 
         value = self.decoded('DTSTART')
-        return gcal_date_or_dateTime(value)
+        return GCal_DateDateTime.create_from(value)
 
-    def _gcal_end(self) -> Dict[str, str]:
+    def _gcal_end(self) -> GCal_DateDateTime:
         """event end dict from icalendar event
 
         Raises:
@@ -110,13 +155,17 @@ class EventConverter(Event):
         result = None
         if 'DTEND' in self:
             value = self.decoded('DTEND')
-            result = gcal_date_or_dateTime(value)
+            result = GCal_DateDateTime.create_from(value)
         elif 'DURATION' in self:
             start_val = self.decoded('DTSTART')
             duration = self.decoded('DURATION')
             end_val = start_val + duration
+            if type(start_val) is datetime.date:
+                if type(end_val) is datetime.datetime:
+                    end_val = datetime.date(
+                        end_val.year, end_val.month, end_val.day)
 
-            result = gcal_date_or_dateTime(end_val, check_value=start_val)
+            result = GCal_DateDateTime.create_from(end_val)
         else:
             raise ValueError('no DTEND or DURATION')
         return result
@@ -138,6 +187,18 @@ class EventConverter(Event):
         if ics_prop in self:
             gcal_event[prop] = func(ics_prop)
 
+    def _get_prop(self, prop: str, func: Callable[[str], str]):
+        """get property from ical event if exist else None
+
+        Arguments:
+            prop -- property name
+            func -- function to convert
+        """
+
+        if prop not in self:
+            return None
+        return func(prop)
+
     def to_gcal(self) -> EventData:
         """Convert
 
@@ -145,24 +206,19 @@ class EventConverter(Event):
             dict - google calendar#event resource
         """
 
-        event = {
-            'iCalUID': self._str_prop('UID'),
+        kwargs = {
+            'ical_uid': self._str_prop('UID'),
             'start': self._gcal_start(),
-            'end': self._gcal_end()
+            'end': self._gcal_end(),
+            'summary': self._get_prop('SUMMARY', self._str_prop),
+            'description': self._get_prop('DESCRIPTION', self._str_prop),
+            'location': self._get_prop('LOCATION', self._str_prop),
+            'created': self._get_prop('CREATED', self._datetime_str_prop),
+            'updated': self._get_prop('LAST-MODIFIED', self._datetime_str_prop),
+            'transparency': self._get_prop('TRANSP', lambda prop: self._str_prop(prop).lower()),
         }
 
-        self._put_to_gcal(event, 'summary', self._str_prop)
-        self._put_to_gcal(event, 'description', self._str_prop)
-        self._put_to_gcal(event, 'location', self._str_prop)
-        self._put_to_gcal(event, 'created', self._datetime_str_prop)
-        self._put_to_gcal(
-            event, 'updated', self._datetime_str_prop, 'LAST-MODIFIED')
-        self._put_to_gcal(
-            event,
-            'transparency',
-            lambda prop: self._str_prop(prop).lower(), 'TRANSP')
-
-        return event
+        return GCal_Event(**kwargs).dict(by_alias=True, exclude_defaults=True)
 
 
 class CalendarConverter:
