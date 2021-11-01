@@ -173,7 +173,7 @@ pyparsing = ">=2.4.2,<3"
 
 [[package]]
 name = "icalendar"
-version = "4.0.7"
+version = "4.0.9"
 description = "iCalendar parser/generator"
 category = "main"
 optional = false
@@ -455,7 +455,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "e9896aeb8f4e0df9cb3fa2ea392158455df2e13e73b45348d1e8b7f98c4f8dff"
+content-hash = "809b533b090aebd69fced43b2c84a0661b0931b6088d36b7af6658dbff21ce22"
 
 [metadata.files]
 atomicwrites = [
@@ -514,8 +514,8 @@ httplib2 = [
     {file = "httplib2-0.20.1.tar.gz", hash = "sha256:0efbcb8bfbfbc11578130d87d8afcc65c2274c6eb446e59fc674e4d7c972d327"},
 ]
 icalendar = [
-    {file = "icalendar-4.0.7-py2.py3-none-any.whl", hash = "sha256:8c35be16c1d0581a276002af883297aeffa8116e366fdce4d5318e1424aa1903"},
-    {file = "icalendar-4.0.7.tar.gz", hash = "sha256:0fc18d87f66e0b5da84fa731389496cfe18e4c21304e8f6713556b2e8724a7a4"},
+    {file = "icalendar-4.0.9-py2.py3-none-any.whl", hash = "sha256:cf1446ffdf1b6ad469451a8966cfa7694f5fac796ac6fc7cd93e28c51a637d2c"},
+    {file = "icalendar-4.0.9.tar.gz", hash = "sha256:cc73fa9c848744843046228cb66ea86cd8c18d73a51b140f7c003f760b84a997"},
 ]
 idna = [
     {file = "idna-3.2-py3-none-any.whl", hash = "sha256:14475042e284991034cb48e06f6851428fb14c4dc953acd9be9a5e95c7b6dd7a"},
