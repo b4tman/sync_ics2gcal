@@ -178,3 +178,29 @@ def test_filter_events_to_update():
 
     assert len(sync1.to_update) == count
     assert sync2.to_update == []
+
+
+def test_filter_events_to_update_no_updated():
+    now = utc.localize(datetime.datetime.utcnow())
+
+    one_hour = datetime.datetime(
+        1, 1, 1, 2) - datetime.datetime(1, 1, 1, 1)
+    date_upd = now + (one_hour * 5)
+
+    count = 10
+    events_old = gen_events(1, 1 + count, now)
+    events_new = gen_events(1, 1 + count, date_upd)
+
+    for event in events_new:
+        del event['updated']
+
+    sync1 = CalendarSync(None, None)
+    sync1.to_update = list(zip(events_new, events_old))
+    sync1._filter_events_to_update()
+
+    sync2 = CalendarSync(None, None)
+    sync2.to_update = list(zip(events_old, events_new))
+    sync2._filter_events_to_update()
+
+    assert len(sync1.to_update) == count
+    assert sync2.to_update == []
