@@ -178,3 +178,30 @@ def test_filter_events_to_update():
 
     assert len(sync1.to_update) == count
     assert sync2.to_update == []
+
+
+def test_filter_events_no_updated():
+    """
+    test filtering events that not have 'updated' field
+    such events should always pass the filter
+    """
+    now = datetime.datetime.utcnow()
+    yesterday = now - datetime.timedelta(days=-1)
+
+    count = 10
+    events_old = gen_events(1, 1 + count, now)
+    events_new = gen_events(1, 1 + count, now)
+
+    # 1/2 updated=yesterday, 1/2 no updated field
+    i = 0
+    for event in events_new:
+        if 0 == i % 2:
+            event['updated'] = yesterday.isoformat() + 'Z'
+        else:
+            del event['updated']
+        i += 1
+
+    sync = CalendarSync(None, None)
+    sync.to_update = list(zip(events_old, events_new))
+    sync._filter_events_to_update()
+    assert len(sync.to_update) == count // 2

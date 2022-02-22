@@ -72,6 +72,8 @@ class CalendarSync:
 
         def filter_updated(event_tuple: EventTuple) -> bool:
             new, old = event_tuple
+            if 'updated' not in new or 'updated' not in old:
+                return True
             new_date = dateutil.parser.parse(new['updated'])
             old_date = dateutil.parser.parse(old['updated'])
             return new_date > old_date
