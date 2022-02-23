@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, Union
 
 import yaml
 
@@ -13,6 +13,8 @@ from . import (
     CalendarSync
 )
 
+ConfigDate = Union[str, datetime.datetime]
+
 
 def load_config() -> Dict[str, Any]:
     with open('config.yml', 'r', encoding='utf-8') as f:
@@ -20,11 +22,13 @@ def load_config() -> Dict[str, Any]:
     return result
 
 
-def get_start_date(date_str: str) -> datetime.datetime:
-    if 'now' == date_str:
+def get_start_date(date: ConfigDate) -> datetime.datetime:
+    if isinstance(date, datetime.datetime):
+        return date
+    if 'now' == date:
         result = datetime.datetime.utcnow()
     else:
-        result = dateutil.parser.parse(date_str)
+        result = dateutil.parser.parse(date)
     return result
 
 
