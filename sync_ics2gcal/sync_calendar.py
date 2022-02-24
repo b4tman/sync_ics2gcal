@@ -38,7 +38,7 @@ def main():
     if 'logging' in config:
         logging.config.dictConfig(config['logging'])
 
-    calendarId: str = config['calendar']['google_id']
+    calendar_id: str = config['calendar']['google_id']
     ics_filepath: str = config['calendar']['source']
 
     start = get_start_date(config['start_from'])
@@ -47,7 +47,7 @@ def main():
     converter.load(ics_filepath)
 
     service = GoogleCalendarService.from_config(config)
-    gcalendar = GoogleCalendar(service, calendarId)
+    gcalendar = GoogleCalendar(service, calendar_id)
 
     sync = CalendarSync(gcalendar, converter)
     sync.prepare_sync(start)

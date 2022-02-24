@@ -101,7 +101,7 @@ class Commands:
         calendar.create(summary, timezone)
         if public:
             calendar.make_public()
-        print('{}: {}'.format(summary, calendar.calendarId))
+        print('{}: {}'.format(summary, calendar.calendar_id))
 
     def add_owner(self, calendar_id: str, email: str) -> None:
         """ add owner to calendar

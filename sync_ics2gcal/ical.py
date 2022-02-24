@@ -29,10 +29,10 @@ def format_datetime_utc(value: DateDateTime) -> str:
     ).replace(tzinfo=None).isoformat() + 'Z'
 
 
-def gcal_date_or_dateTime(value: DateDateTime,
+def gcal_date_or_datetime(value: DateDateTime,
                           check_value: Optional[DateDateTime] = None) \
         -> Dict[str, str]:
-    """date or dateTime to gcal (start or end dict)
+    """date or datetime to gcal (start or end dict)
 
     Arguments:
         value: date or datetime
@@ -96,7 +96,7 @@ class EventConverter(Event):
         """
 
         value = self.decoded('DTSTART')
-        return gcal_date_or_dateTime(value)
+        return gcal_date_or_datetime(value)
 
     def _gcal_end(self) -> Dict[str, str]:
         """event end dict from icalendar event
@@ -110,13 +110,13 @@ class EventConverter(Event):
         result = None
         if 'DTEND' in self:
             value = self.decoded('DTEND')
-            result = gcal_date_or_dateTime(value)
+            result = gcal_date_or_datetime(value)
         elif 'DURATION' in self:
             start_val = self.decoded('DTSTART')
             duration = self.decoded('DURATION')
             end_val = start_val + duration
 
-            result = gcal_date_or_dateTime(end_val, check_value=start_val)
+            result = gcal_date_or_datetime(end_val, check_value=start_val)
         else:
             raise ValueError('no DTEND or DURATION')
         return result
