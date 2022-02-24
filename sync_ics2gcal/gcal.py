@@ -85,7 +85,7 @@ def select_event_key(event: EventData) -> Optional[str]:
 
 
 class GoogleCalendar:
-    """class to interact with calendar on google
+    """class to interact with calendar on Google
     """
 
     logger = logging.getLogger('GoogleCalendar')
@@ -312,7 +312,7 @@ class GoogleCalendar:
         self.service.calendars().delete(calendarId=self.calendar_id).execute()
 
     def make_public(self):
-        """make calendar puplic
+        """make calendar public
         """
 
         rule_public = {

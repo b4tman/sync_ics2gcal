@@ -11,7 +11,7 @@ from .ical import CalendarConverter, DateDateTime
 
 
 class CalendarSync:
-    """class for syncronize calendar with google
+    """class for synchronize calendar with Google
     """
 
     logger = logging.getLogger('CalendarSync')
@@ -32,7 +32,7 @@ class CalendarSync:
 
         Arguments:
             items_src {list of dict} -- source events
-            items_dst {list of dict} -- dest events
+            items_dst {list of dict} -- destination events
             key {str} -- name of key to compare (default: {'iCalUID'})
 
         Returns:
@@ -90,10 +90,10 @@ class CalendarSync:
         Arguments:
             events -- events list
             date {datetime} -- datetime to compare
-            op {operator} -- comparsion operator
+            op {operator} -- comparison operator
 
         Returns:
-            list of filtred events
+            list of filtered events
         """
 
         def filter_by_date(event: EventData) -> bool:
@@ -120,13 +120,13 @@ class CalendarSync:
 
     @staticmethod
     def _tz_aware_datetime(date: DateDateTime) -> datetime.datetime:
-        """make tz aware datetime from datetime/date (utc if no tzinfo)
+        """make tz aware datetime from datetime/date (utc if no tz-info)
 
         Arguments:
-            date - date or datetime / with or without tzinfo
+            date - date or datetime / with or without tz-info
 
         Returns:
-            datetime with tzinfo
+            datetime with tz-info
         """
 
         if not isinstance(date, datetime.datetime):
@@ -136,7 +136,7 @@ class CalendarSync:
         return date
 
     def prepare_sync(self, start_date: DateDateTime) -> None:
-        """prepare sync lists by comparsion of events
+        """prepare sync lists by comparison of events
 
         Arguments:
             start_date -- date/datetime to start sync
@@ -153,7 +153,7 @@ class CalendarSync:
         events_src_past = CalendarSync._filter_events_by_date(
             events_src, start_date, operator.lt)
 
-        # first events comparsion
+        # first events comparison
         self.to_insert, self.to_update, self.to_delete = CalendarSync._events_list_compare(
             events_src_pending, events_dst)
 

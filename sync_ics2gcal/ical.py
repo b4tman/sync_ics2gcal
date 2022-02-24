@@ -65,7 +65,7 @@ class EventConverter(Event):
         """decoded string property
 
         Arguments:
-            prop - propperty name
+            prop - property name
 
         Returns:
             string value
@@ -107,7 +107,7 @@ class EventConverter(Event):
             dict
         """
 
-        result = None
+        result: Dict[str, str]
         if 'DTEND' in self:
             value = self.decoded('DTEND')
             result = gcal_date_or_datetime(value)
@@ -124,10 +124,10 @@ class EventConverter(Event):
     def _put_to_gcal(self, gcal_event: EventData,
                      prop: str, func: Callable[[str], str],
                      ics_prop: Optional[str] = None):
-        """get property from ical event if exist, and put to gcal event
+        """get property from ical event if existed, and put to gcal event
 
         Arguments:
-            gcal_event -- dest event
+            gcal_event -- destination event
             prop -- property name
             func -- function to convert
             ics_prop -- ical property name (default: {None})
@@ -191,7 +191,7 @@ class CalendarConverter:
         """
 
         ics_events = self.calendar.walk(name='VEVENT')
-        self.logger.info('%d events readed', len(ics_events))
+        self.logger.info('%d events read', len(ics_events))
 
         result = list(
             map(lambda event: EventConverter(event).to_gcal(), ics_events))
