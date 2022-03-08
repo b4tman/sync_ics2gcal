@@ -20,18 +20,15 @@ def format_datetime_utc(value: DateDateTime) -> str:
         utc datetime value as string in iso format
     """
     if not isinstance(value, datetime.datetime):
-        value = datetime.datetime(
-            value.year, value.month, value.day, tzinfo=utc)
+        value = datetime.datetime(value.year, value.month, value.day, tzinfo=utc)
     value = value.replace(microsecond=1)
 
-    return utc.normalize(
-        value.astimezone(utc)
-    ).replace(tzinfo=None).isoformat() + 'Z'
+    return utc.normalize(value.astimezone(utc)).replace(tzinfo=None).isoformat() + "Z"
 
 
-def gcal_date_or_datetime(value: DateDateTime,
-                          check_value: Optional[DateDateTime] = None) \
-        -> Dict[str, str]:
+def gcal_date_or_datetime(
+    value: DateDateTime, check_value: Optional[DateDateTime] = None
+) -> Dict[str, str]:
     """date or datetime to gcal (start or end dict)
 
     Arguments:
@@ -47,12 +44,12 @@ def gcal_date_or_datetime(value: DateDateTime,
 
     result: Dict[str, str] = {}
     if isinstance(check_value, datetime.datetime):
-        result['dateTime'] = format_datetime_utc(value)
+        result["dateTime"] = format_datetime_utc(value)
     else:
         if isinstance(check_value, datetime.date):
             if isinstance(value, datetime.datetime):
                 value = datetime.date(value.year, value.month, value.day)
-        result['date'] = value.isoformat()
+        result["date"] = value.isoformat()
     return result
 
 
@@ -71,7 +68,7 @@ class EventConverter(Event):
             string value
         """
 
-        return self.decoded(prop).decode(encoding='utf-8')
+        return self.decoded(prop).decode(encoding="utf-8")
 
     def _datetime_str_prop(self, prop: str) -> str:
         """utc datetime as string from property
@@ -86,7 +83,7 @@ class EventConverter(Event):
         return format_datetime_utc(self.decoded(prop))
 
     def _gcal_start(self) -> Dict[str, str]:
-        """ event start dict from icalendar event
+        """event start dict from icalendar event
 
         Raises:
             ValueError -- if DTSTART not date or datetime
@@ -95,7 +92,7 @@ class EventConverter(Event):
             dict
         """
 
-        value = self.decoded('DTSTART')
+        value = self.decoded("DTSTART")
         return gcal_date_or_datetime(value)
 
     def _gcal_end(self) -> Dict[str, str]:
@@ -108,22 +105,26 @@ class EventConverter(Event):
         """
 
         result: Dict[str, str]
-        if 'DTEND' in self:
-            value = self.decoded('DTEND')
+        if "DTEND" in self:
+            value = self.decoded("DTEND")
             result = gcal_date_or_datetime(value)
-        elif 'DURATION' in self:
-            start_val = self.decoded('DTSTART')
-            duration = self.decoded('DURATION')
+        elif "DURATION" in self:
+            start_val = self.decoded("DTSTART")
+            duration = self.decoded("DURATION")
             end_val = start_val + duration
 
             result = gcal_date_or_datetime(end_val, check_value=start_val)
         else:
-            raise ValueError('no DTEND or DURATION')
+            raise ValueError("no DTEND or DURATION")
         return result
 
-    def _put_to_gcal(self, gcal_event: EventData,
-                     prop: str, func: Callable[[str], str],
-                     ics_prop: Optional[str] = None):
+    def _put_to_gcal(
+        self,
+        gcal_event: EventData,
+        prop: str,
+        func: Callable[[str], str],
+        ics_prop: Optional[str] = None,
+    ):
         """get property from ical event if existed, and put to gcal event
 
         Arguments:
@@ -146,54 +147,47 @@ class EventConverter(Event):
         """
 
         event = {
-            'iCalUID': self._str_prop('UID'),
-            'start': self._gcal_start(),
-            'end': self._gcal_end()
+            "iCalUID": self._str_prop("UID"),
+            "start": self._gcal_start(),
+            "end": self._gcal_end(),
         }
 
-        self._put_to_gcal(event, 'summary', self._str_prop)
-        self._put_to_gcal(event, 'description', self._str_prop)
-        self._put_to_gcal(event, 'location', self._str_prop)
-        self._put_to_gcal(event, 'created', self._datetime_str_prop)
+        self._put_to_gcal(event, "summary", self._str_prop)
+        self._put_to_gcal(event, "description", self._str_prop)
+        self._put_to_gcal(event, "location", self._str_prop)
+        self._put_to_gcal(event, "created", self._datetime_str_prop)
+        self._put_to_gcal(event, "updated", self._datetime_str_prop, "LAST-MODIFIED")
         self._put_to_gcal(
-            event, 'updated', self._datetime_str_prop, 'LAST-MODIFIED')
-        self._put_to_gcal(
-            event,
-            'transparency',
-            lambda prop: self._str_prop(prop).lower(), 'TRANSP')
+            event, "transparency", lambda prop: self._str_prop(prop).lower(), "TRANSP"
+        )
 
         return event
 
 
 class CalendarConverter:
-    """Convert icalendar events to google calendar resources
-    """
+    """Convert icalendar events to google calendar resources"""
 
-    logger = logging.getLogger('CalendarConverter')
+    logger = logging.getLogger("CalendarConverter")
 
     def __init__(self, calendar: Optional[Calendar] = None):
         self.calendar: Optional[Calendar] = calendar
 
     def load(self, filename: str):
-        """ load calendar from ics file
-        """
-        with open(filename, 'r', encoding='utf-8') as f:
+        """load calendar from ics file"""
+        with open(filename, "r", encoding="utf-8") as f:
             self.calendar = Calendar.from_ical(f.read())
-            self.logger.info('%s loaded', filename)
+            self.logger.info("%s loaded", filename)
 
     def loads(self, string: str):
-        """ load calendar from ics string
-        """
+        """load calendar from ics string"""
         self.calendar = Calendar.from_ical(string)
 
     def events_to_gcal(self) -> EventList:
-        """Convert events to google calendar resources
-        """
+        """Convert events to google calendar resources"""
 
-        ics_events = self.calendar.walk(name='VEVENT')
-        self.logger.info('%d events read', len(ics_events))
+        ics_events = self.calendar.walk(name="VEVENT")
+        self.logger.info("%d events read", len(ics_events))
 
-        result = list(
-            map(lambda event: EventConverter(event).to_gcal(), ics_events))
-        self.logger.info('%d events converted', len(result))
+        result = list(map(lambda event: EventConverter(event).to_gcal(), ics_events))
+        self.logger.info("%d events converted", len(result))
         return result

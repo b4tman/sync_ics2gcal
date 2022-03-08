@@ -14,28 +14,30 @@ from sync_ics2gcal import CalendarSync
 
 def sha1(string: Union[str, bytes]) -> str:
     if isinstance(string, str):
-        string = string.encode('utf8')
+        string = string.encode("utf8")
     h = hashlib.sha1()
     h.update(string)
     return h.hexdigest()
 
 
-def gen_events(start: int,
-               stop: int,
-               start_time: Union[datetime.datetime, datetime.date],
-               no_time: bool = False) -> List[Dict[str, Union[str, Dict[str, str]]]]:
+def gen_events(
+    start: int,
+    stop: int,
+    start_time: Union[datetime.datetime, datetime.date],
+    no_time: bool = False,
+) -> List[Dict[str, Union[str, Dict[str, str]]]]:
     if no_time:
-        start_time = datetime.date(
-            start_time.year, start_time.month, start_time.day)
+        start_time = datetime.date(start_time.year, start_time.month, start_time.day)
         duration: datetime.timedelta = datetime.date(1, 1, 2) - datetime.date(1, 1, 1)
         date_key: str = "date"
-        date_end: str = ''
+        date_end: str = ""
     else:
-        start_time = utc.normalize(
-            start_time.astimezone(utc)).replace(tzinfo=None)
-        duration: datetime.timedelta = datetime.datetime(1, 1, 1, 2) - datetime.datetime(1, 1, 1, 1)
+        start_time = utc.normalize(start_time.astimezone(utc)).replace(tzinfo=None)
+        duration: datetime.timedelta = datetime.datetime(
+            1, 1, 1, 2
+        ) - datetime.datetime(1, 1, 1, 1)
         date_key: str = "dateTime"
-        date_end: str = 'Z'
+        date_end: str = "Z"
 
     result: List[Dict[str, Union[str, Dict[str, str]]]] = []
     for i in range(start, stop):
@@ -45,17 +47,18 @@ def gen_events(start: int,
         updated: Union[datetime.datetime, datetime.date] = event_start
         if no_time:
             updated = datetime.datetime(
-                updated.year, updated.month, updated.day, 0, 0, 0, 1, tzinfo=utc)
+                updated.year, updated.month, updated.day, 0, 0, 0, 1, tzinfo=utc
+            )
 
         event: Dict[str, Union[str, Dict[str, str]]] = {
-            'summary': 'test event __ {}'.format(i),
-            'location': 'la la la {}'.format(i),
-            'description': 'test TEST -- test event {}'.format(i),
+            "summary": "test event __ {}".format(i),
+            "location": "la la la {}".format(i),
+            "description": "test TEST -- test event {}".format(i),
             "iCalUID": "{}@test.com".format(sha1("test - event {}".format(i))),
-            "updated": updated.isoformat() + 'Z',
-            "created": updated.isoformat() + 'Z',
-            'start': {date_key: event_start.isoformat() + date_end},
-            'end': {date_key: event_end.isoformat() + date_end}
+            "updated": updated.isoformat() + "Z",
+            "created": updated.isoformat() + "Z",
+            "start": {date_key: event_start.isoformat() + date_end},
+            "end": {date_key: event_end.isoformat() + date_end},
         }
         result.append(event)
     return result
@@ -64,19 +67,21 @@ def gen_events(start: int,
 def gen_list_to_compare(start: int, stop: int) -> List[Dict[str, str]]:
     result: List[Dict[str, str]] = []
     for i in range(start, stop):
-        result.append({'iCalUID': 'test{:06d}'.format(i)})
+        result.append({"iCalUID": "test{:06d}".format(i)})
     return result
 
 
-def get_start_date(event: Dict[str, Union[str, Dict[str, str]]]) -> Union[datetime.datetime, datetime.date]:
-    event_start: Dict[str, str] = event['start']
+def get_start_date(
+    event: Dict[str, Union[str, Dict[str, str]]]
+) -> Union[datetime.datetime, datetime.date]:
+    event_start: Dict[str, str] = event["start"]
     start_date: Optional[str] = None
     is_date = False
-    if 'date' in event_start:
-        start_date = event_start['date']
+    if "date" in event_start:
+        start_date = event_start["date"]
         is_date = True
-    if 'dateTime' in event_start:
-        start_date = event_start['dateTime']
+    if "dateTime" in event_start:
+        start_date = event_start["dateTime"]
 
     result = dateutil.parser.parse(start_date)
     if is_date:
@@ -90,8 +95,7 @@ def test_compare():
     # [1..2n]
     lst_src = gen_list_to_compare(1, 1 + part_len * 2)
     # [n..3n]
-    lst_dst = gen_list_to_compare(
-        1 + part_len, 1 + part_len * 3)
+    lst_dst = gen_list_to_compare(1 + part_len, 1 + part_len * 3)
 
     lst_src_rnd = deepcopy(lst_src)
     lst_dst_rnd = deepcopy(lst_dst)
@@ -99,15 +103,14 @@ def test_compare():
     shuffle(lst_src_rnd)
     shuffle(lst_dst_rnd)
 
-    to_ins, to_upd, to_del = CalendarSync._events_list_compare(
-        lst_src_rnd, lst_dst_rnd)
+    to_ins, to_upd, to_del = CalendarSync._events_list_compare(lst_src_rnd, lst_dst_rnd)
 
     assert len(to_ins) == part_len
     assert len(to_upd) == part_len
     assert len(to_del) == part_len
 
-    assert sorted(to_ins, key=lambda x: x['iCalUID']) == lst_src[:part_len]
-    assert sorted(to_del, key=lambda x: x['iCalUID']) == lst_dst[part_len:]
+    assert sorted(to_ins, key=lambda x: x["iCalUID"]) == lst_src[:part_len]
+    assert sorted(to_del, key=lambda x: x["iCalUID"]) == lst_dst[part_len:]
 
     to_upd_ok = list(zip(lst_src[part_len:], lst_dst[:part_len]))
     assert len(to_upd) == len(to_upd_ok)
@@ -115,35 +118,29 @@ def test_compare():
         assert item in to_upd
 
 
-@pytest.mark.parametrize("no_time", [True, False], ids=['date', 'dateTime'])
+@pytest.mark.parametrize("no_time", [True, False], ids=["date", "dateTime"])
 def test_filter_events_by_date(no_time: bool):
-    msk = timezone('Europe/Moscow')
+    msk = timezone("Europe/Moscow")
     now = utc.localize(datetime.datetime.utcnow())
     msk_now = msk.normalize(now.astimezone(msk))
 
     part_len = 5
 
     if no_time:
-        duration = datetime.date(
-            1, 1, 2) - datetime.date(1, 1, 1)
+        duration = datetime.date(1, 1, 2) - datetime.date(1, 1, 1)
     else:
-        duration = datetime.datetime(
-            1, 1, 1, 2) - datetime.datetime(1, 1, 1, 1)
+        duration = datetime.datetime(1, 1, 1, 2) - datetime.datetime(1, 1, 1, 1)
 
     date_cmp = msk_now + (duration * part_len)
 
     if no_time:
-        date_cmp = datetime.date(
-            date_cmp.year, date_cmp.month, date_cmp.day)
+        date_cmp = datetime.date(date_cmp.year, date_cmp.month, date_cmp.day)
 
-    events = gen_events(
-        1, 1 + (part_len * 2), msk_now, no_time)
+    events = gen_events(1, 1 + (part_len * 2), msk_now, no_time)
     shuffle(events)
 
-    events_pending = CalendarSync._filter_events_by_date(
-        events, date_cmp, operator.ge)
-    events_past = CalendarSync._filter_events_by_date(
-        events, date_cmp, operator.lt)
+    events_pending = CalendarSync._filter_events_by_date(events, date_cmp, operator.ge)
+    events_past = CalendarSync._filter_events_by_date(events, date_cmp, operator.lt)
 
     assert len(events_pending) == 1 + part_len
     assert len(events_past) == part_len - 1
@@ -156,12 +153,11 @@ def test_filter_events_by_date(no_time: bool):
 
 
 def test_filter_events_to_update():
-    msk = timezone('Europe/Moscow')
+    msk = timezone("Europe/Moscow")
     now = utc.localize(datetime.datetime.utcnow())
     msk_now = msk.normalize(now.astimezone(msk))
 
-    one_hour = datetime.datetime(
-        1, 1, 1, 2) - datetime.datetime(1, 1, 1, 1)
+    one_hour = datetime.datetime(1, 1, 1, 2) - datetime.datetime(1, 1, 1, 1)
     date_upd = msk_now + (one_hour * 5)
 
     count = 10
@@ -196,9 +192,9 @@ def test_filter_events_no_updated():
     i = 0
     for event in events_new:
         if 0 == i % 2:
-            event['updated'] = yesterday.isoformat() + 'Z'
+            event["updated"] = yesterday.isoformat() + "Z"
         else:
-            del event['updated']
+            del event["updated"]
         i += 1
 
     sync = CalendarSync(None, None)
