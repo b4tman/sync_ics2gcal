@@ -6,18 +6,13 @@ import dateutil.parser
 import datetime
 import logging
 import logging.config
-from . import (
-    CalendarConverter,
-    GoogleCalendarService,
-    GoogleCalendar,
-    CalendarSync
-)
+from . import CalendarConverter, GoogleCalendarService, GoogleCalendar, CalendarSync
 
 ConfigDate = Union[str, datetime.datetime]
 
 
 def load_config() -> Dict[str, Any]:
-    with open('config.yml', 'r', encoding='utf-8') as f:
+    with open("config.yml", "r", encoding="utf-8") as f:
         result = yaml.safe_load(f)
     return result
 
@@ -25,7 +20,7 @@ def load_config() -> Dict[str, Any]:
 def get_start_date(date: ConfigDate) -> datetime.datetime:
     if isinstance(date, datetime.datetime):
         return date
-    if 'now' == date:
+    if "now" == date:
         result = datetime.datetime.utcnow()
     else:
         result = dateutil.parser.parse(date)
@@ -35,13 +30,13 @@ def get_start_date(date: ConfigDate) -> datetime.datetime:
 def main():
     config = load_config()
 
-    if 'logging' in config:
-        logging.config.dictConfig(config['logging'])
+    if "logging" in config:
+        logging.config.dictConfig(config["logging"])
 
-    calendar_id: str = config['calendar']['google_id']
-    ics_filepath: str = config['calendar']['source']
+    calendar_id: str = config["calendar"]["google_id"]
+    ics_filepath: str = config["calendar"]["source"]
 
-    start = get_start_date(config['start_from'])
+    start = get_start_date(config["start_from"])
 
     converter = CalendarConverter()
     converter.load(ics_filepath)
@@ -54,5 +49,5 @@ def main():
     sync.apply()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
