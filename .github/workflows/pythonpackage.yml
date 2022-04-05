@@ -31,7 +31,7 @@ jobs:
       uses: actions/cache@v3.0.1
       with:
         path: ~/.local
-        key: poetry-0
+        key: poetry-1
     - name: Install Poetry
       uses: snok/install-poetry@v1
     - name: Install deps
