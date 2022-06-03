@@ -1,6 +1,17 @@
 import logging
 from datetime import datetime
-from typing import List, Dict, Any, Callable, Tuple, Optional, Union, TypedDict, TypeAlias
+from typing import (
+    List,
+    Dict,
+    Any,
+    Callable,
+    Tuple,
+    Optional,
+    Union,
+    TypedDict,
+    TypeAlias,
+    Literal,
+)
 
 import google.auth
 from google.oauth2 import service_account
@@ -20,7 +31,55 @@ class EventDateTime(TypedDict, total=False):
 
 EventDateOrDateTime: TypeAlias = Union[EventDate, EventDateTime]
 
-EventData: TypeAlias = Dict[str, Union[str, EventDateOrDateTime, None]]
+
+class ACLScope(TypedDict, total=False):
+    type: str
+    value: str
+
+
+class ACLRule(TypedDict, total=False):
+    scope: ACLScope
+    role: str
+
+
+class CalendarData(TypedDict, total=False):
+    id: str
+    summary: str
+    description: str
+    timeZone: str
+
+
+class EventData(TypedDict, total=False):
+    id: str
+    summary: str
+    description: str
+    start: EventDateOrDateTime
+    end: EventDateOrDateTime
+    iCalUID: str
+    location: str
+    status: str
+    created: str
+    updated: str
+    sequence: int
+    transparency: str
+    visibility: str
+
+
+EventDataKey = Union[
+    Literal["id"],
+    Literal["summary"],
+    Literal["description"],
+    Literal["start"],
+    Literal["end"],
+    Literal["iCalUID"],
+    Literal["location"],
+    Literal["status"],
+    Literal["created"],
+    Literal["updated"],
+    Literal["sequence"],
+    Literal["transparency"],
+    Literal["visibility"],
+]
 EventList: TypeAlias = List[EventData]
 EventTuple: TypeAlias = Tuple[EventData, EventData]
 
@@ -90,7 +149,7 @@ def select_event_key(event: EventData) -> Optional[str]:
         key name or None if no key found
     """
 
-    key = None
+    key: Optional[str] = None
     if "iCalUID" in event:
         key = "iCalUID"
     elif "id" in event:
@@ -118,9 +177,10 @@ class GoogleCalendar:
             callback function
         """
 
-        def callback(request_id: str, response: Any, exception: Exception):
+        def callback(request_id: str, response: Any, exception: Optional[Exception]):
             event: EventData = events_by_req[int(request_id)]
-            key: str = str(select_event_key(event))
+            event_key: Optional[str] = select_event_key(event)
+            key: str = event_key if event_key is not None else ""
 
             if exception is not None:
                 self.logger.error(
@@ -131,7 +191,7 @@ class GoogleCalendar:
                     str(exception),
                 )
             else:
-                resp_key: str = select_event_key(response)
+                resp_key: Optional[str] = select_event_key(response)
                 if resp_key is not None:
                     event = response
                     key = resp_key
@@ -183,7 +243,9 @@ class GoogleCalendar:
         exists: List[EventTuple] = []
         not_found: EventList = []
 
-        def list_callback(request_id: str, response: Any, exception: Exception):
+        def list_callback(
+            request_id: str, response: Any, exception: Optional[Exception]
+        ):
             found: bool = False
             cur_event: EventData = events_by_req[int(request_id)]
             if exception is None:
@@ -333,7 +395,7 @@ class GoogleCalendar:
             calendar Resource
         """
 
-        calendar: Dict[str, str] = {"summary": summary}
+        calendar: CalendarData = CalendarData(summary=summary)
         if time_zone is not None:
             calendar["timeZone"] = time_zone
 
@@ -349,12 +411,7 @@ class GoogleCalendar:
     def make_public(self):
         """make calendar public"""
 
-        rule_public: Dict[str, Union[str, Dict[str, str]]] = {
-            "scope": {
-                "type": "default",
-            },
-            "role": "reader",
-        }
+        rule_public: ACLRule = ACLRule(scope=ACLScope(type="default"), role="reader")
         return (
             self.service.acl()
             .insert(calendarId=self.calendar_id, body=rule_public)
@@ -368,13 +425,9 @@ class GoogleCalendar:
             email -- email to add
         """
 
-        rule_owner: Dict[str, Union[str, Dict[str, str]]] = {
-            "scope": {
-                "type": "user",
-                "value": email,
-            },
-            "role": "owner",
-        }
+        rule_owner: ACLRule = ACLRule(
+            scope=ACLScope(type="user", value=email), role="owner"
+        )
         return (
             self.service.acl()
             .insert(calendarId=self.calendar_id, body=rule_owner)

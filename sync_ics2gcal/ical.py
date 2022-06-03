@@ -5,7 +5,14 @@ from typing import Union, Dict, Callable, Optional, Mapping, TypeAlias, TypedDic
 from icalendar import Calendar, Event
 from pytz import utc
 
-from .gcal import EventData, EventList, EventDateOrDateTime, EventDateTime, EventDate
+from .gcal import (
+    EventData,
+    EventList,
+    EventDateOrDateTime,
+    EventDateTime,
+    EventDate,
+    EventDataKey,
+)
 
 DateDateTime: TypeAlias = Union[datetime.date, datetime.datetime]
 
@@ -121,7 +128,7 @@ class EventConverter(Event):
     def _put_to_gcal(
         self,
         gcal_event: EventData,
-        prop: str,
+        prop: EventDataKey,
         func: Callable[[str], str],
         ics_prop: Optional[str] = None,
     ):
@@ -139,18 +146,18 @@ class EventConverter(Event):
         if ics_prop in self:
             gcal_event[prop] = func(ics_prop)
 
-    def to_gcal(self) -> EventData:
+    def convert(self) -> EventData:
         """Convert
 
         Returns:
             dict - google calendar#event resource
         """
 
-        event: EventData = {
-            "iCalUID": self._str_prop("UID"),
-            "start": self._gcal_start(),
-            "end": self._gcal_end(),
-        }
+        event: EventData = EventData(
+            iCalUID=self._str_prop("UID"),
+            start=self._gcal_start(),
+            end=self._gcal_end(),
+        )
 
         self._put_to_gcal(event, "summary", self._str_prop)
         self._put_to_gcal(event, "description", self._str_prop)
@@ -189,6 +196,6 @@ class CalendarConverter:
         ics_events = calendar.walk(name="VEVENT")
         self.logger.info("%d events read", len(ics_events))
 
-        result = list(map(lambda event: EventConverter(event).to_gcal(), ics_events))
+        result = list(map(lambda event: EventConverter(event).convert(), ics_events))
         self.logger.info("%d events converted", len(result))
         return result
