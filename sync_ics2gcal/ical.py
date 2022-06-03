@@ -1,6 +1,6 @@
 import datetime
 import logging
-from typing import Union, Dict, Callable, Optional, Mapping, TypeAlias, TypedDict
+from typing import Union, Dict, Callable, Optional, Mapping, TypedDict
 
 from icalendar import Calendar, Event
 from pytz import utc
@@ -14,7 +14,7 @@ from .gcal import (
     EventDataKey,
 )
 
-DateDateTime: TypeAlias = Union[datetime.date, datetime.datetime]
+DateDateTime = Union[datetime.date, datetime.datetime]
 
 
 def format_datetime_utc(value: DateDateTime) -> str:

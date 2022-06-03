@@ -9,7 +9,6 @@ from typing import (
     Optional,
     Union,
     TypedDict,
-    TypeAlias,
     Literal,
     NamedTuple,
 )
@@ -30,7 +29,7 @@ class EventDateTime(TypedDict, total=False):
     timeZone: str
 
 
-EventDateOrDateTime: TypeAlias = Union[EventDate, EventDateTime]
+EventDateOrDateTime = Union[EventDate, EventDateTime]
 
 
 class ACLScope(TypedDict, total=False):
@@ -81,8 +80,8 @@ EventDataKey = Union[
     Literal["transparency"],
     Literal["visibility"],
 ]
-EventList: TypeAlias = List[EventData]
-EventTuple: TypeAlias = Tuple[EventData, EventData]
+EventList = List[EventData]
+EventTuple = Tuple[EventData, EventData]
 
 
 class EventsSearchResults(NamedTuple):
