@@ -3,62 +3,62 @@ import hashlib
 import operator
 from copy import deepcopy
 from random import shuffle
-from typing import Union, List, Dict, Optional
+from typing import Union, List, Dict, Optional, AnyStr
 
 import dateutil.parser
 import pytest
 from pytz import timezone, utc
 
-from sync_ics2gcal import CalendarSync
+from sync_ics2gcal import CalendarSync, DateDateTime
+from sync_ics2gcal.gcal import EventDateOrDateTime, EventData, EventList
 
 
-def sha1(string: Union[str, bytes]) -> str:
-    if isinstance(string, str):
-        string = string.encode("utf8")
+def sha1(s: AnyStr) -> str:
     h = hashlib.sha1()
-    h.update(string)
+    h.update(str(s).encode("utf8") if isinstance(s, str) else s)
     return h.hexdigest()
 
 
 def gen_events(
     start: int,
     stop: int,
-    start_time: Union[datetime.datetime, datetime.date],
+    start_time: DateDateTime,
     no_time: bool = False,
-) -> List[Dict[str, Union[str, Dict[str, str]]]]:
+) -> EventList:
+    duration: datetime.timedelta
+    date_key: str
+    date_end: str
     if no_time:
         start_time = datetime.date(start_time.year, start_time.month, start_time.day)
-        duration: datetime.timedelta = datetime.date(1, 1, 2) - datetime.date(1, 1, 1)
-        date_key: str = "date"
-        date_end: str = ""
+        duration = datetime.date(1, 1, 2) - datetime.date(1, 1, 1)
+        date_key = "date"
+        date_end = ""
     else:
-        start_time = utc.normalize(start_time.astimezone(utc)).replace(tzinfo=None)
-        duration: datetime.timedelta = datetime.datetime(
-            1, 1, 1, 2
-        ) - datetime.datetime(1, 1, 1, 1)
-        date_key: str = "dateTime"
-        date_end: str = "Z"
+        start_time = utc.normalize(start_time.astimezone(utc)).replace(tzinfo=None)  # type: ignore
+        duration = datetime.datetime(1, 1, 1, 2) - datetime.datetime(1, 1, 1, 1)
+        date_key = "dateTime"
+        date_end = "Z"
 
-    result: List[Dict[str, Union[str, Dict[str, str]]]] = []
+    result: EventList = []
     for i in range(start, stop):
         event_start = start_time + (duration * i)
         event_end = event_start + duration
 
-        updated: Union[datetime.datetime, datetime.date] = event_start
+        updated: DateDateTime = event_start
         if no_time:
             updated = datetime.datetime(
                 updated.year, updated.month, updated.day, 0, 0, 0, 1, tzinfo=utc
             )
 
-        event: Dict[str, Union[str, Dict[str, str]]] = {
+        event: EventData = {
             "summary": "test event __ {}".format(i),
             "location": "la la la {}".format(i),
             "description": "test TEST -- test event {}".format(i),
             "iCalUID": "{}@test.com".format(sha1("test - event {}".format(i))),
             "updated": updated.isoformat() + "Z",
             "created": updated.isoformat() + "Z",
-            "start": {date_key: event_start.isoformat() + date_end},
-            "end": {date_key: event_end.isoformat() + date_end},
+            "start": {date_key: event_start.isoformat() + date_end},  # type: ignore
+            "end": {date_key: event_end.isoformat() + date_end},  # type: ignore
         }
         result.append(event)
     return result
@@ -71,19 +71,17 @@ def gen_list_to_compare(start: int, stop: int) -> List[Dict[str, str]]:
     return result
 
 
-def get_start_date(
-    event: Dict[str, Union[str, Dict[str, str]]]
-) -> Union[datetime.datetime, datetime.date]:
-    event_start: Dict[str, str] = event["start"]
+def get_start_date(event: EventData) -> DateDateTime:
+    event_start: EventDateOrDateTime = event["start"]
     start_date: Optional[str] = None
     is_date = False
     if "date" in event_start:
-        start_date = event_start["date"]
+        start_date = event_start["date"]  # type: ignore
         is_date = True
     if "dateTime" in event_start:
-        start_date = event_start["dateTime"]
+        start_date = event_start["dateTime"]  # type: ignore
 
-    result = dateutil.parser.parse(start_date)
+    result: DateDateTime = dateutil.parser.parse(str(start_date))
     if is_date:
         result = datetime.date(result.year, result.month, result.day)
 
@@ -131,7 +129,7 @@ def test_filter_events_by_date(no_time: bool):
     else:
         duration = datetime.datetime(1, 1, 1, 2) - datetime.datetime(1, 1, 1, 1)
 
-    date_cmp = msk_now + (duration * part_len)
+    date_cmp: DateDateTime = msk_now + (duration * part_len)
 
     if no_time:
         date_cmp = datetime.date(date_cmp.year, date_cmp.month, date_cmp.day)
