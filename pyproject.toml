@@ -41,3 +41,12 @@ manage-ics2gcal = "sync_ics2gcal.manage_calendars:main"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[[tool.mypy.overrides]]
+module = [
+    'icalendar',
+    'google.*',
+    'googleapiclient'
+]
+ignore_missing_imports = true
+
