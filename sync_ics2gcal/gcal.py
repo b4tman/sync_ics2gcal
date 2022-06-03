@@ -11,6 +11,7 @@ from typing import (
     TypedDict,
     TypeAlias,
     Literal,
+    NamedTuple,
 )
 
 import google.auth
@@ -82,6 +83,11 @@ EventDataKey = Union[
 ]
 EventList: TypeAlias = List[EventData]
 EventTuple: TypeAlias = Tuple[EventData, EventData]
+
+
+class EventsSearchResults(NamedTuple):
+    exists: List[EventTuple]
+    new: List[EventData]
 
 
 class GoogleCalendarService:
@@ -227,14 +233,14 @@ class GoogleCalendar:
         self.logger.info("%d events listed", len(events))
         return events
 
-    def find_exists(self, events: List) -> Tuple[List[EventTuple], EventList]:
+    def find_exists(self, events: List) -> EventsSearchResults:
         """find existing events from list, by 'iCalUID' field
 
         Arguments:
             events {list} -- list of events
 
         Returns:
-            tuple -- (events_exist, events_not_found)
+            EventsSearchResults -- (events_exist, events_not_found)
                   events_exist - list of tuples: (new_event, exists_event)
         """
 
@@ -277,7 +283,7 @@ class GoogleCalendar:
             i += 1
         batch.execute()
         self.logger.info("%d events exists, %d not found", len(exists), len(not_found))
-        return exists, not_found
+        return EventsSearchResults(exists, not_found)
 
     def insert_events(self, events: EventList):
         """insert list of events
