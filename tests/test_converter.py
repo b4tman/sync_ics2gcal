@@ -1,8 +1,11 @@
+import datetime
 from typing import Tuple
 
 import pytest
+from pytz import timezone, utc
 
 from sync_ics2gcal import CalendarConverter
+from sync_ics2gcal.ical import format_datetime_utc
 
 uid = "UID:uisgtr8tre93wewe0yr8wqy@test.com"
 only_start_date = (
@@ -122,3 +125,22 @@ def test_event_created_updated():
     event = events[0]
     assert event["created"] == "2018-03-20T07:11:55.000001Z"
     assert event["updated"] == "2018-03-26T12:02:35.000001Z"
+
+
+@pytest.mark.parametrize(
+    "value,expected_str",
+    [
+        (
+            datetime.datetime(2022, 6, 3, 13, 52, 15, 1, utc),
+            "2022-06-03T13:52:15.000001Z",
+        ),
+        (
+            datetime.datetime(2022, 6, 3, 13, 52, 15, 1, timezone("Europe/Moscow")),
+            "2022-06-03T11:22:15.000001Z",
+        ),
+        (datetime.date(2022, 6, 3), "2022-06-03T00:00:00.000001Z"),
+    ],
+    ids=["utc", "with timezone", "date"],
+)
+def test_format_datetime_utc(value: datetime.datetime, expected_str: str):
+    assert format_datetime_utc(value) == expected_str
