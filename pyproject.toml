@@ -30,6 +30,9 @@ fire = "0.4.0"
 pytest = "^7.1.2"
 flake8 = "^4.0.1"
 black = "^22.3.0"
+mypy = ">=0.960"
+types-python-dateutil = "^2.8.17"
+types-pytz = ">=2021.3.8"
 
 [tool.poetry.scripts]
 sync-ics2gcal = "sync_ics2gcal.sync_calendar:main"
