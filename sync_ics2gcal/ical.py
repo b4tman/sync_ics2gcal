@@ -1,13 +1,13 @@
 import datetime
 import logging
-from typing import Union, Dict, Callable, Optional
+from typing import Union, Dict, Callable, Optional, Mapping, TypeAlias, TypedDict
 
 from icalendar import Calendar, Event
 from pytz import utc
 
-from .gcal import EventData, EventList
+from .gcal import EventData, EventList, EventDateOrDateTime, EventDateTime, EventDate
 
-DateDateTime = Union[datetime.date, datetime.datetime]
+DateDateTime: TypeAlias = Union[datetime.date, datetime.datetime]
 
 
 def format_datetime_utc(value: DateDateTime) -> str:
@@ -28,7 +28,7 @@ def format_datetime_utc(value: DateDateTime) -> str:
 
 def gcal_date_or_datetime(
     value: DateDateTime, check_value: Optional[DateDateTime] = None
-) -> Dict[str, str]:
+) -> EventDateOrDateTime:
     """date or datetime to gcal (start or end dict)
 
     Arguments:
@@ -42,14 +42,14 @@ def gcal_date_or_datetime(
     if check_value is None:
         check_value = value
 
-    result: Dict[str, str] = {}
+    result: EventDateOrDateTime
     if isinstance(check_value, datetime.datetime):
-        result["dateTime"] = format_datetime_utc(value)
+        result = EventDateTime(dateTime=format_datetime_utc(value))
     else:
         if isinstance(check_value, datetime.date):
             if isinstance(value, datetime.datetime):
                 value = datetime.date(value.year, value.month, value.day)
-        result["date"] = value.isoformat()
+        result = EventDate(date=value.isoformat())
     return result
 
 
@@ -82,7 +82,7 @@ class EventConverter(Event):
 
         return format_datetime_utc(self.decoded(prop))
 
-    def _gcal_start(self) -> Dict[str, str]:
+    def _gcal_start(self) -> EventDateOrDateTime:
         """event start dict from icalendar event
 
         Raises:
@@ -95,7 +95,7 @@ class EventConverter(Event):
         value = self.decoded("DTSTART")
         return gcal_date_or_datetime(value)
 
-    def _gcal_end(self) -> Dict[str, str]:
+    def _gcal_end(self) -> EventDateOrDateTime:
         """event end dict from icalendar event
 
         Raises:
@@ -104,7 +104,7 @@ class EventConverter(Event):
             dict
         """
 
-        result: Dict[str, str]
+        result: EventDateOrDateTime
         if "DTEND" in self:
             value = self.decoded("DTEND")
             result = gcal_date_or_datetime(value)
@@ -146,7 +146,7 @@ class EventConverter(Event):
             dict - google calendar#event resource
         """
 
-        event = {
+        event: EventData = {
             "iCalUID": self._str_prop("UID"),
             "start": self._gcal_start(),
             "end": self._gcal_end(),
@@ -185,7 +185,8 @@ class CalendarConverter:
     def events_to_gcal(self) -> EventList:
         """Convert events to google calendar resources"""
 
-        ics_events = self.calendar.walk(name="VEVENT")
+        calendar: Calendar = self.calendar
+        ics_events = calendar.walk(name="VEVENT")
         self.logger.info("%d events read", len(ics_events))
 
         result = list(map(lambda event: EventConverter(event).to_gcal(), ics_events))
