@@ -28,7 +28,7 @@ def get_start_date(date: ConfigDate) -> datetime.datetime:
 
 
 def main() -> None:
-    config = load_config()
+    config  = load_config()
 
     if "logging" in config:
         logging.config.dictConfig(config["logging"])
