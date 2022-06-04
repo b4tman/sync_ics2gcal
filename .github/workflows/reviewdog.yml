@@ -33,7 +33,7 @@ jobs:
         echo "#!/bin/sh" > tmp_bin/mypy
         echo "poetry run mypy \$@" >> tmp_bin/mypy
         chmod +x tmp_bin/mypy
-        echo ::add-path::tmp_bin/
+        echo "$(pwd)/tmp_bin" >> $GITHUB_PATH
 
     - uses: tsuyoshicho/action-mypy@v3
       with:
