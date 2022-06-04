@@ -39,3 +39,14 @@ jobs:
         poetry run flake8 sync_ics2gcal --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: poetry run pytest -v
+
+    - name: Check type annotations with mypy
+      run: |
+        mkdir mypy_report
+        poetry run mypy --pretty --html-report mypy_report/
+
+    - name: Upload mypy report
+      uses: actions/upload-artifact@v2
+      with:
+        name: mypy_report
+        path: mypy_report/
