@@ -11,7 +11,6 @@ keywords = ["icalendar", "sync", "google", "calendar"]
 classifiers = [
     'License :: OSI Approved :: MIT License',
     'Operating System :: OS Independent',
-    'Programming Language :: Python :: 3.6',
     'Programming Language :: Python :: 3.7',
     'Programming Language :: Python :: 3.8',
     'Programming Language :: Python :: 3.9',
@@ -19,17 +18,18 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.6"
-google-auth = "2.2.1"
-google-api-python-client = "2.23.0"
-icalendar = "4.0.7"
-pytz = "2021.1"
-PyYAML = "5.4.1"
+python = "^3.7"
+google-auth = "2.6.6"
+google-api-python-client = "2.49.0"
+icalendar = "4.0.9"
+pytz = "2022.1"
+PyYAML = "6.0"
 fire = "0.4.0"
 
 [tool.poetry.dev-dependencies]
-pytest = "^6.2.5"
-flake8 = "^3.9.2"
+pytest = "^7.1.2"
+flake8 = "^4.0.1"
+black = "^22.3.0"
 
 [tool.poetry.scripts]
 sync-ics2gcal = "sync_ics2gcal.sync_calendar:main"
