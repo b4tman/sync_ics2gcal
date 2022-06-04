@@ -27,7 +27,7 @@ def get_start_date(date: ConfigDate) -> datetime.datetime:
     return result
 
 
-def main():
+def main() -> str:
     config = load_config()
 
     if "logging" in config:
