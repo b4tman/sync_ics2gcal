@@ -4,8 +4,12 @@ service-account.json
 my-test*.ics
 .vscode/
 .idea/
+.venv/
+.pytest_cache/
+.mypy_cache/
 /dist/
 /*.egg-info/
 /build/
 /.eggs/
 venv/
+mypy_report/

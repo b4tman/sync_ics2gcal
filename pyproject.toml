@@ -34,6 +34,7 @@ mypy = ">=0.960"
 types-python-dateutil = "^2.8.17"
 types-pytz = ">=2021.3.8"
 types-PyYAML = "^6.0.8"
+lxml = "^4.9.0"
 
 [tool.poetry.scripts]
 sync-ics2gcal = "sync_ics2gcal.sync_calendar:main"
@@ -51,4 +52,3 @@ module = [
     'fire'
 ]
 ignore_missing_imports = true
-
