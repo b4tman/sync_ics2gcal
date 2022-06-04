@@ -39,3 +39,11 @@ jobs:
       with:
        reporter: github-pr-review
        level: warning
+
+    - name: format with black
+      run: poetry run black .
+
+    - name: suggester / black
+      uses: reviewdog/action-suggester@v1
+      with:
+        tool_name: black

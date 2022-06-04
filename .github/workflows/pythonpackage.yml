@@ -49,6 +49,9 @@ jobs:
       run: |
         poetry run mypy --strict --pretty . || true
 
+    - name: Check formatting with black
+      run: poetry run black --check --diff --color .
+
     - name: Upload mypy report
       uses: actions/upload-artifact@v2
       with:
