@@ -11,14 +11,13 @@ keywords = ["icalendar", "sync", "google", "calendar"]
 classifiers = [
     'License :: OSI Approved :: MIT License',
     'Operating System :: OS Independent',
-    'Programming Language :: Python :: 3.7',
     'Programming Language :: Python :: 3.8',
     'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
 ]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.8"
 google-auth = "2.6.6"
 google-api-python-client = "2.49.0"
 icalendar = "4.0.9"
