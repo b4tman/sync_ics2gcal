@@ -45,6 +45,10 @@ jobs:
         mkdir mypy_report
         poetry run mypy --pretty --html-report mypy_report/ .
 
+    - name: Check type annotations with mypy strict mode (not failing)
+      run: |
+        poetry run mypy --strict --pretty . || true
+
     - name: Upload mypy report
       uses: actions/upload-artifact@v2
       with:
