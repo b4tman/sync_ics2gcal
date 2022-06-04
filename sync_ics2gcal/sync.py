@@ -77,7 +77,7 @@ class CalendarSync:
 
         return ComparedEvents(items_to_insert, items_to_update, items_to_delete)
 
-    def _filter_events_to_update(self):
+    def _filter_events_to_update(self) -> None:
         """filter 'to_update' events by 'updated' datetime"""
 
         def filter_updated(event_tuple: EventTuple) -> bool:

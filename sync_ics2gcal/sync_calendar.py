@@ -14,7 +14,7 @@ ConfigDate = Union[str, datetime.datetime]
 def load_config() -> Dict[str, Any]:
     with open("config.yml", "r", encoding="utf-8") as f:
         result = yaml.safe_load(f)
-    return result
+    return result  # type: ignore
 
 
 def get_start_date(date: ConfigDate) -> datetime.datetime:

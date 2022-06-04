@@ -60,7 +60,7 @@ def gcal_date_or_datetime(
     return result
 
 
-class EventConverter(Event):
+class EventConverter(Event):  # type: ignore
     """Convert icalendar event to google calendar resource
     ( https://developers.google.com/calendar/v3/reference/events#resource-representations )
     """
@@ -75,7 +75,7 @@ class EventConverter(Event):
             string value
         """
 
-        return self.decoded(prop).decode(encoding="utf-8")
+        return str(self.decoded(prop).decode(encoding="utf-8"))
 
     def _datetime_str_prop(self, prop: str) -> str:
         """utc datetime as string from property
@@ -131,7 +131,7 @@ class EventConverter(Event):
         prop: EventDataKey,
         func: Callable[[str], str],
         ics_prop: Optional[str] = None,
-    ):
+    ) -> None:
         """get property from ical event if existed, and put to gcal event
 
         Arguments:
@@ -179,13 +179,13 @@ class CalendarConverter:
     def __init__(self, calendar: Optional[Calendar] = None):
         self.calendar: Optional[Calendar] = calendar
 
-    def load(self, filename: str):
+    def load(self, filename: str) -> None:
         """load calendar from ics file"""
         with open(filename, "r", encoding="utf-8") as f:
             self.calendar = Calendar.from_ical(f.read())
             self.logger.info("%s loaded", filename)
 
-    def loads(self, string: str):
+    def loads(self, string: str) -> None:
         """load calendar from ics string"""
         self.calendar = Calendar.from_ical(string)
 
