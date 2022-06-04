@@ -64,8 +64,8 @@ def gen_events(
     return result
 
 
-def gen_list_to_compare(start: int, stop: int) -> List[Dict[str, str]]:
-    result: List[Dict[str, str]] = []
+def gen_list_to_compare(start: int, stop: int) -> EventList:
+    result: EventList = []
     for i in range(start, stop):
         result.append({"iCalUID": "test{:06d}".format(i)})
     return result
@@ -88,8 +88,8 @@ def get_start_date(event: EventData) -> DateDateTime:
     return result
 
 
-def test_compare():
-    part_len = 20
+def test_compare() -> None:
+    part_len: int = 20
     # [1..2n]
     lst_src = gen_list_to_compare(1, 1 + part_len * 2)
     # [n..3n]
@@ -117,7 +117,7 @@ def test_compare():
 
 
 @pytest.mark.parametrize("no_time", [True, False], ids=["date", "dateTime"])
-def test_filter_events_by_date(no_time: bool):
+def test_filter_events_by_date(no_time: bool) -> None:
     msk = timezone("Europe/Moscow")
     now = utc.localize(datetime.datetime.utcnow())
     msk_now = msk.normalize(now.astimezone(msk))
@@ -150,7 +150,7 @@ def test_filter_events_by_date(no_time: bool):
         assert get_start_date(event) < date_cmp
 
 
-def test_filter_events_to_update():
+def test_filter_events_to_update() -> None:
     msk = timezone("Europe/Moscow")
     now = utc.localize(datetime.datetime.utcnow())
     msk_now = msk.normalize(now.astimezone(msk))
@@ -162,11 +162,11 @@ def test_filter_events_to_update():
     events_old = gen_events(1, 1 + count, msk_now)
     events_new = gen_events(1, 1 + count, date_upd)
 
-    sync1 = CalendarSync(None, None)
+    sync1 = CalendarSync(None, None)  # type: ignore
     sync1.to_update = list(zip(events_new, events_old))
     sync1._filter_events_to_update()
 
-    sync2 = CalendarSync(None, None)
+    sync2 = CalendarSync(None, None)  # type: ignore
     sync2.to_update = list(zip(events_old, events_new))
     sync2._filter_events_to_update()
 
@@ -174,7 +174,7 @@ def test_filter_events_to_update():
     assert sync2.to_update == []
 
 
-def test_filter_events_no_updated():
+def test_filter_events_no_updated() -> None:
     """
     test filtering events that not have 'updated' field
     such events should always pass the filter
@@ -195,7 +195,7 @@ def test_filter_events_no_updated():
             del event["updated"]
         i += 1
 
-    sync = CalendarSync(None, None)
+    sync = CalendarSync(None, None)  # type: ignore
     sync.to_update = list(zip(events_old, events_new))
     sync._filter_events_to_update()
     assert len(sync.to_update) == count // 2
