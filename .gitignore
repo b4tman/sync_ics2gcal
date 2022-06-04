@@ -13,3 +13,4 @@ my-test*.ics
 /.eggs/
 venv/
 mypy_report/
+tmp_bin/
