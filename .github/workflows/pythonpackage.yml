@@ -43,7 +43,7 @@ jobs:
     - name: Check type annotations with mypy
       run: |
         mkdir mypy_report
-        poetry run mypy --pretty --html-report mypy_report/
+        poetry run mypy --pretty --html-report mypy_report/ .
 
     - name: Upload mypy report
       uses: actions/upload-artifact@v2
