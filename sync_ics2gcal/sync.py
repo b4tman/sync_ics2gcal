@@ -1,13 +1,29 @@
 import datetime
 import logging
 import operator
-from typing import List, Dict, Set, Tuple, Union, Callable
+from typing import List, Dict, Set, Tuple, Union, Callable, NamedTuple
 
 import dateutil.parser
 from pytz import utc
 
-from .gcal import GoogleCalendar, EventData, EventList, EventTuple
+from .gcal import (
+    GoogleCalendar,
+    EventData,
+    EventList,
+    EventTuple,
+    EventDataKey,
+    EventDateOrDateTime,
+    EventDate,
+)
 from .ical import CalendarConverter, DateDateTime
+
+
+class ComparedEvents(NamedTuple):
+    """Compared events"""
+
+    added: EventList
+    changed: List[EventTuple]
+    deleted: EventList
 
 
 class CalendarSync:
@@ -24,8 +40,8 @@ class CalendarSync:
 
     @staticmethod
     def _events_list_compare(
-        items_src: EventList, items_dst: EventList, key: str = "iCalUID"
-    ) -> Tuple[EventList, List[EventTuple], EventList]:
+        items_src: EventList, items_dst: EventList, key: EventDataKey = "iCalUID"
+    ) -> ComparedEvents:
         """compare list of events by key
 
         Arguments:
@@ -34,13 +50,11 @@ class CalendarSync:
             key {str} -- name of key to compare (default: {'iCalUID'})
 
         Returns:
-            tuple -- (items_to_insert,
-                      items_to_update,
-                      items_to_delete)
+            ComparedEvents -- (added, changed, deleted)
         """
 
         def get_key(item: EventData) -> str:
-            return item[key]
+            return str(item[key])
 
         keys_src: Set[str] = set(map(get_key, items_src))
         keys_dst: Set[str] = set(map(get_key, items_dst))
@@ -49,21 +63,21 @@ class CalendarSync:
         keys_to_update = keys_src & keys_dst
         keys_to_delete = keys_dst - keys_src
 
-        def items_by_keys(items: EventList, key_name: str, keys: Set[str]) -> EventList:
-            return list(filter(lambda item: item[key_name] in keys, items))
+        def items_by_keys(items: EventList, keys: Set[str]) -> EventList:
+            return list(filter(lambda item: get_key(item) in keys, items))
 
-        items_to_insert = items_by_keys(items_src, key, keys_to_insert)
-        items_to_delete = items_by_keys(items_dst, key, keys_to_delete)
+        items_to_insert = items_by_keys(items_src, keys_to_insert)
+        items_to_delete = items_by_keys(items_dst, keys_to_delete)
 
-        to_upd_src = items_by_keys(items_src, key, keys_to_update)
-        to_upd_dst = items_by_keys(items_dst, key, keys_to_update)
+        to_upd_src = items_by_keys(items_src, keys_to_update)
+        to_upd_dst = items_by_keys(items_dst, keys_to_update)
         to_upd_src.sort(key=get_key)
         to_upd_dst.sort(key=get_key)
         items_to_update = list(zip(to_upd_src, to_upd_dst))
 
-        return items_to_insert, items_to_update, items_to_delete
+        return ComparedEvents(items_to_insert, items_to_update, items_to_delete)
 
-    def _filter_events_to_update(self):
+    def _filter_events_to_update(self) -> None:
         """filter 'to_update' events by 'updated' datetime"""
 
         def filter_updated(event_tuple: EventTuple) -> bool:
@@ -95,17 +109,17 @@ class CalendarSync:
 
         def filter_by_date(event: EventData) -> bool:
             date_cmp = date
-            event_start: Dict[str, str] = event["start"]
+            event_start: EventDateOrDateTime = event["start"]
             event_date: Union[DateDateTime, str, None] = None
             compare_dates = False
 
             if "date" in event_start:
-                event_date = event_start["date"]
+                event_date = event_start["date"]  # type: ignore
                 compare_dates = True
             elif "dateTime" in event_start:
-                event_date = event_start["dateTime"]
+                event_date = event_start["dateTime"]  # type: ignore
 
-            event_date = dateutil.parser.parse(event_date)
+            event_date = dateutil.parser.parse(str(event_date))
             if compare_dates:
                 date_cmp = datetime.date(date.year, date.month, date.day)
                 event_date = datetime.date(

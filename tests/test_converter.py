@@ -1,5 +1,5 @@
 import datetime
-from typing import Tuple
+from typing import Tuple, Any
 
 import pytest
 from pytz import timezone, utc
@@ -57,21 +57,21 @@ def ics_test_event(content: str) -> str:
     return ics_test_cal("BEGIN:VEVENT\r\n{}END:VEVENT\r\n".format(content))
 
 
-def test_empty_calendar():
+def test_empty_calendar() -> None:
     converter = CalendarConverter()
     converter.loads(ics_test_cal(""))
     evnts = converter.events_to_gcal()
     assert evnts == []
 
 
-def test_empty_event():
+def test_empty_event() -> None:
     converter = CalendarConverter()
     converter.loads(ics_test_event(""))
     with pytest.raises(KeyError):
         converter.events_to_gcal()
 
 
-def test_event_no_end():
+def test_event_no_end() -> None:
     converter = CalendarConverter()
     converter.loads(ics_test_event(only_start_date))
     with pytest.raises(ValueError):
@@ -102,11 +102,11 @@ def test_event_no_end():
         "datetime utc duration",
     ],
 )
-def param_events_start_end(request):
+def param_events_start_end(request: Any) -> Any:
     return request.param
 
 
-def test_event_start_end(param_events_start_end: Tuple[str, str, str, str]):
+def test_event_start_end(param_events_start_end: Tuple[str, str, str, str]) -> None:
     (date_type, ics_str, start, end) = param_events_start_end
     converter = CalendarConverter()
     converter.loads(ics_str)
@@ -117,7 +117,7 @@ def test_event_start_end(param_events_start_end: Tuple[str, str, str, str]):
     assert event["end"] == {date_type: end}
 
 
-def test_event_created_updated():
+def test_event_created_updated() -> None:
     converter = CalendarConverter()
     converter.loads(ics_test_event(created_updated))
     events = converter.events_to_gcal()
@@ -142,5 +142,5 @@ def test_event_created_updated():
     ],
     ids=["utc", "with timezone", "date"],
 )
-def test_format_datetime_utc(value: datetime.datetime, expected_str: str):
+def test_format_datetime_utc(value: datetime.datetime, expected_str: str) -> None:
     assert format_datetime_utc(value) == expected_str

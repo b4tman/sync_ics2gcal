@@ -1,15 +1,95 @@
 import logging
 from datetime import datetime
-from typing import List, Dict, Any, Callable, Tuple, Optional, Union
+from typing import (
+    List,
+    Dict,
+    Any,
+    Callable,
+    Tuple,
+    Optional,
+    Union,
+    TypedDict,
+    Literal,
+    NamedTuple,
+)
 
 import google.auth
 from google.oauth2 import service_account
 from googleapiclient import discovery
 from pytz import utc
 
-EventData = Dict[str, Union[str, "EventData", None]]
+
+class EventDate(TypedDict, total=False):
+    date: str
+    timeZone: str
+
+
+class EventDateTime(TypedDict, total=False):
+    dateTime: str
+    timeZone: str
+
+
+EventDateOrDateTime = Union[EventDate, EventDateTime]
+
+
+class ACLScope(TypedDict, total=False):
+    type: str
+    value: str
+
+
+class ACLRule(TypedDict, total=False):
+    scope: ACLScope
+    role: str
+
+
+class CalendarData(TypedDict, total=False):
+    id: str
+    summary: str
+    description: str
+    timeZone: str
+
+
+class EventData(TypedDict, total=False):
+    id: str
+    summary: str
+    description: str
+    start: EventDateOrDateTime
+    end: EventDateOrDateTime
+    iCalUID: str
+    location: str
+    status: str
+    created: str
+    updated: str
+    sequence: int
+    transparency: str
+    visibility: str
+
+
+EventDataKey = Union[
+    Literal["id"],
+    Literal["summary"],
+    Literal["description"],
+    Literal["start"],
+    Literal["end"],
+    Literal["iCalUID"],
+    Literal["location"],
+    Literal["status"],
+    Literal["created"],
+    Literal["updated"],
+    Literal["sequence"],
+    Literal["transparency"],
+    Literal["visibility"],
+]
 EventList = List[EventData]
 EventTuple = Tuple[EventData, EventData]
+
+
+class EventsSearchResults(NamedTuple):
+    exists: List[EventTuple]
+    new: List[EventData]
+
+
+BatchRequestCallback = Callable[[str, Any, Optional[Exception]], None]
 
 
 class GoogleCalendarService:
@@ -20,7 +100,7 @@ class GoogleCalendarService:
     """
 
     @staticmethod
-    def default():
+    def default() -> discovery.Resource:
         """make service Resource from default credentials (authorize)
         ( https://developers.google.com/identity/protocols/application-default-credentials )
         ( https://googleapis.dev/python/google-auth/latest/reference/google.auth.html#google.auth.default )
@@ -34,7 +114,7 @@ class GoogleCalendarService:
         return service
 
     @staticmethod
-    def from_srv_acc_file(service_account_file: str):
+    def from_srv_acc_file(service_account_file: str) -> discovery.Resource:
         """make service Resource from service account filename (authorize)"""
 
         scopes = ["https://www.googleapis.com/auth/calendar"]
@@ -48,7 +128,7 @@ class GoogleCalendarService:
         return service
 
     @staticmethod
-    def from_config(config: Optional[Dict[str, Optional[str]]] = None):
+    def from_config(config: Optional[Dict[str, str]] = None) -> discovery.Resource:
         """make service Resource from config dict
 
         Arguments:
@@ -60,7 +140,8 @@ class GoogleCalendarService:
         """
 
         if config is not None and "service_account" in config:
-            service = GoogleCalendarService.from_srv_acc_file(config["service_account"])
+            service_account_filename: str = config["service_account"]
+            service = GoogleCalendarService.from_srv_acc_file(service_account_filename)
         else:
             service = GoogleCalendarService.default()
         return service
@@ -76,7 +157,7 @@ def select_event_key(event: EventData) -> Optional[str]:
         key name or None if no key found
     """
 
-    key = None
+    key: Optional[str] = None
     if "iCalUID" in event:
         key = "iCalUID"
     elif "id" in event:
@@ -91,9 +172,11 @@ class GoogleCalendar:
 
     def __init__(self, service: discovery.Resource, calendar_id: Optional[str]):
         self.service: discovery.Resource = service
-        self.calendar_id: str = calendar_id
+        self.calendar_id: str = str(calendar_id)
 
-    def _make_request_callback(self, action: str, events_by_req: EventList) -> Callable:
+    def _make_request_callback(
+        self, action: str, events_by_req: EventList
+    ) -> BatchRequestCallback:
         """make callback for log result of batch request
 
         Arguments:
@@ -104,9 +187,12 @@ class GoogleCalendar:
             callback function
         """
 
-        def callback(request_id, response, exception):
-            event = events_by_req[int(request_id)]
-            key = select_event_key(event)
+        def callback(
+            request_id: str, response: Any, exception: Optional[Exception]
+        ) -> None:
+            event: EventData = events_by_req[int(request_id)]
+            event_key: Optional[str] = select_event_key(event)
+            key: str = event_key if event_key is not None else ""
 
             if exception is not None:
                 self.logger.error(
@@ -117,7 +203,7 @@ class GoogleCalendar:
                     str(exception),
                 )
             else:
-                resp_key = select_event_key(response)
+                resp_key: Optional[str] = select_event_key(response)
                 if resp_key is not None:
                     event = response
                     key = resp_key
@@ -127,10 +213,10 @@ class GoogleCalendar:
 
     def list_events_from(self, start: datetime) -> EventList:
         """list events from calendar, where start date >= start"""
-        fields = "nextPageToken,items(id,iCalUID,updated)"
-        events = []
-        page_token = None
-        time_min = (
+        fields: str = "nextPageToken,items(id,iCalUID,updated)"
+        events: EventList = []
+        page_token: Optional[str] = None
+        time_min: str = (
             utc.normalize(start.astimezone(utc)).replace(tzinfo=None).isoformat() + "Z"
         )
         while True:
@@ -153,25 +239,27 @@ class GoogleCalendar:
         self.logger.info("%d events listed", len(events))
         return events
 
-    def find_exists(self, events: List) -> Tuple[List[EventTuple], EventList]:
+    def find_exists(self, events: EventList) -> EventsSearchResults:
         """find existing events from list, by 'iCalUID' field
 
         Arguments:
             events {list} -- list of events
 
         Returns:
-            tuple -- (events_exist, events_not_found)
+            EventsSearchResults -- (events_exist, events_not_found)
                   events_exist - list of tuples: (new_event, exists_event)
         """
 
-        fields = "items(id,iCalUID,updated)"
-        events_by_req = []
-        exists = []
-        not_found = []
+        fields: str = "items(id,iCalUID,updated)"
+        events_by_req: EventList = []
+        exists: List[EventTuple] = []
+        not_found: EventList = []
 
-        def list_callback(request_id, response, exception):
-            found = False
-            cur_event = events_by_req[int(request_id)]
+        def list_callback(
+            request_id: str, response: Any, exception: Optional[Exception]
+        ) -> None:
+            found: bool = False
+            cur_event: EventData = events_by_req[int(request_id)]
             if exception is None:
                 found = [] != response["items"]
             else:
@@ -186,7 +274,7 @@ class GoogleCalendar:
                 not_found.append(events_by_req[int(request_id)])
 
         batch = self.service.new_batch_http_request(callback=list_callback)
-        i = 0
+        i: int = 0
         for event in events:
             events_by_req.append(event)
             batch.add(
@@ -201,21 +289,21 @@ class GoogleCalendar:
             i += 1
         batch.execute()
         self.logger.info("%d events exists, %d not found", len(exists), len(not_found))
-        return exists, not_found
+        return EventsSearchResults(exists, not_found)
 
-    def insert_events(self, events: EventList):
+    def insert_events(self, events: EventList) -> None:
         """insert list of events
 
         Arguments:
             events  - events list
         """
 
-        fields = "id"
-        events_by_req = []
+        fields: str = "id"
+        events_by_req: EventList = []
 
         insert_callback = self._make_request_callback("insert", events_by_req)
         batch = self.service.new_batch_http_request(callback=insert_callback)
-        i = 0
+        i: int = 0
         for event in events:
             events_by_req.append(event)
             batch.add(
@@ -227,19 +315,19 @@ class GoogleCalendar:
             i += 1
         batch.execute()
 
-    def patch_events(self, event_tuples: List[EventTuple]):
+    def patch_events(self, event_tuples: List[EventTuple]) -> None:
         """patch (update) events
 
         Arguments:
             event_tuples  -- list of tuples: (new_event, exists_event)
         """
 
-        fields = "id"
-        events_by_req = []
+        fields: str = "id"
+        events_by_req: EventList = []
 
         patch_callback = self._make_request_callback("patch", events_by_req)
         batch = self.service.new_batch_http_request(callback=patch_callback)
-        i = 0
+        i: int = 0
         for event_new, event_old in event_tuples:
             if "id" not in event_old:
                 continue
@@ -254,19 +342,19 @@ class GoogleCalendar:
             i += 1
         batch.execute()
 
-    def update_events(self, event_tuples: List[EventTuple]):
+    def update_events(self, event_tuples: List[EventTuple]) -> None:
         """update events
 
         Arguments:
             event_tuples  -- list of tuples: (new_event, exists_event)
         """
 
-        fields = "id"
-        events_by_req = []
+        fields: str = "id"
+        events_by_req: EventList = []
 
         update_callback = self._make_request_callback("update", events_by_req)
         batch = self.service.new_batch_http_request(callback=update_callback)
-        i = 0
+        i: int = 0
         for event_new, event_old in event_tuples:
             if "id" not in event_old:
                 continue
@@ -283,18 +371,18 @@ class GoogleCalendar:
             i += 1
         batch.execute()
 
-    def delete_events(self, events: EventList):
+    def delete_events(self, events: EventList) -> None:
         """delete events
 
         Arguments:
             events  -- list of events
         """
 
-        events_by_req = []
+        events_by_req: EventList = []
 
         delete_callback = self._make_request_callback("delete", events_by_req)
         batch = self.service.new_batch_http_request(callback=delete_callback)
-        i = 0
+        i: int = 0
         for event in events:
             events_by_req.append(event)
             batch.add(
@@ -319,7 +407,7 @@ class GoogleCalendar:
             calendar Resource
         """
 
-        calendar = {"summary": summary}
+        calendar = CalendarData(summary=summary)
         if time_zone is not None:
             calendar["timeZone"] = time_zone
 
@@ -327,42 +415,27 @@ class GoogleCalendar:
         self.calendar_id = created_calendar["id"]
         return created_calendar
 
-    def delete(self):
+    def delete(self) -> None:
         """delete calendar"""
 
         self.service.calendars().delete(calendarId=self.calendar_id).execute()
 
-    def make_public(self):
+    def make_public(self) -> None:
         """make calendar public"""
 
-        rule_public = {
-            "scope": {
-                "type": "default",
-            },
-            "role": "reader",
-        }
-        return (
-            self.service.acl()
-            .insert(calendarId=self.calendar_id, body=rule_public)
-            .execute()
-        )
+        rule_public = ACLRule(scope=ACLScope(type="default"), role="reader")
+        self.service.acl().insert(
+            calendarId=self.calendar_id, body=rule_public
+        ).execute()
 
-    def add_owner(self, email: str):
+    def add_owner(self, email: str) -> None:
         """add calendar owner by email
 
         Arguments:
             email -- email to add
         """
 
-        rule_owner = {
-            "scope": {
-                "type": "user",
-                "value": email,
-            },
-            "role": "owner",
-        }
-        return (
-            self.service.acl()
-            .insert(calendarId=self.calendar_id, body=rule_owner)
-            .execute()
-        )
+        rule_owner = ACLRule(scope=ACLScope(type="user", value=email), role="owner")
+        self.service.acl().insert(
+            calendarId=self.calendar_id, body=rule_owner
+        ).execute()

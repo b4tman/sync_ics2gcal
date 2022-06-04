@@ -8,7 +8,7 @@ from . import GoogleCalendar, GoogleCalendarService
 
 
 def load_config(filename: str) -> Optional[Dict[str, Any]]:
-    result = None
+    result: Optional[Dict[str, Any]] = None
     try:
         with open(filename, "r", encoding="utf-8") as f:
             result = yaml.safe_load(f)
@@ -21,7 +21,7 @@ def load_config(filename: str) -> Optional[Dict[str, Any]]:
 class PropertyCommands:
     """get/set google calendar properties"""
 
-    def __init__(self, _service):
+    def __init__(self, _service: Any) -> None:
         self._service = _service
 
     def get(self, calendar_id: str, property_name: str) -> None:
@@ -146,7 +146,7 @@ class Commands:
         print("{}: {}".format(summary, calendar_id))
 
 
-def main():
+def main() -> None:
     fire.Fire(Commands, name="manage-ics2gcal")
 
 
