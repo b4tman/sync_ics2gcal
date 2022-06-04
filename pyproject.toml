@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sync_ics2gcal"
-version = "0.1.3"
+version = "0.1.4"
 description = "Sync ics file with Google calendar"
 authors = ["Dmitry Belyaev <b4tm4n@mail.ru>"]
 license = "MIT"
