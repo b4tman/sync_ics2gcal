@@ -23,7 +23,7 @@ google-api-python-client = "2.68.0"
 icalendar = "5.0.4"
 pytz = "2022.6"
 PyYAML = "6.0"
-fire = "0.4.0"
+fire = "0.5.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.2.0"
