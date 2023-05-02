@@ -311,14 +311,14 @@ pyparsing = {version = ">=2.4.2,<3.0.0 || >3.0.0,<3.0.1 || >3.0.1,<3.0.2 || >3.0
 
 [[package]]
 name = "icalendar"
-version = "5.0.4"
+version = "5.0.5"
 description = "iCalendar parser/generator"
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "icalendar-5.0.4-py3-none-any.whl", hash = "sha256:3e759f9c3875e037c90e1c2f4aff0f6123f4435af6152b80a70b8d6a5529cb1b"},
-    {file = "icalendar-5.0.4.tar.gz", hash = "sha256:f0aa86d6f5bc110ed3b91e96c48c70351d7a09fbed25366f673dc0b799c83975"},
+    {file = "icalendar-5.0.5-py3-none-any.whl", hash = "sha256:022c3fa7421fe274889007c12582510ab2e4ba0ac612b73dc35982c644356540"},
+    {file = "icalendar-5.0.5.tar.gz", hash = "sha256:ee76771d4eccebae3683beeb9c24c24feb2f8cceade72b92e4437f0144f81584"},
 ]
 
 [package.dependencies]
@@ -920,4 +920,4 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "906a2cce92b7eb228aa78b7313908fdc987e0545d6b08313118890c7ee912695"
+content-hash = "dd08ce97f204cd3a86bb3a6b3b6f4c26255ee4c3fdb1d326f21528318e457467"
