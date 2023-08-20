@@ -2,6 +2,7 @@
 
 [![PyPI version](https://badge.fury.io/py/sync-ics2gcal.svg)](https://badge.fury.io/py/sync-ics2gcal)
 ![Python package status](https://github.com/b4tman/sync_ics2gcal/workflows/Python%20package/badge.svg)
+[![Documentation Status](https://readthedocs.org/projects/sync-ics2gcal/badge/?version=latest)](https://sync-ics2gcal.readthedocs.io/en/latest/?badge=latest)
 
 Python scripts for sync .ics file with Google calendar
 
@@ -98,3 +99,5 @@ sync-ics2gcal
 ## How it works
 
 ![How it works](how-it-works.png)
+
+Documentation is available at [sync-ics2gcal.readthedocs.io](https://sync-ics2gcal.readthedocs.io).

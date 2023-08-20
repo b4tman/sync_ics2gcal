@@ -25,7 +25,7 @@ jobs:
       uses: snok/install-poetry@v1
 
     - name: Install deps
-      run: poetry install
+      run: poetry install --with dev
 
     - name: setup mypy
       run: |
