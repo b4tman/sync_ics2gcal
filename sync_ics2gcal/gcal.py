@@ -132,11 +132,14 @@ class GoogleCalendarService:
         """make service Resource from config dict
 
         Arguments:
-        config -- config with keys:
-                    (optional) service_account: - service account filename
-                    if key not in dict then default credentials will be used
-                    ( https://developers.google.com/identity/protocols/application-default-credentials )
-               -- None: default credentials will be used
+
+        **config** -- config with keys:
+
+        (optional) service_account: - service account filename
+        if key not in dict then default credentials will be used
+        ( https://developers.google.com/identity/protocols/application-default-credentials )
+
+        -- **None**: default credentials will be used
         """
 
         if config is not None and "service_account" in config:
