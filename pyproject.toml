@@ -22,7 +22,7 @@ python = "^3.8"
 google-auth = "2.25.2"
 google-api-python-client = "2.111.0"
 icalendar = "5.0.11"
-pytz = "2023.3.post1"
+pytz = "2023.4"
 PyYAML = "6.0.1"
 fire = "0.5.0"
 
