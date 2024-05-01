@@ -20,7 +20,7 @@ classifiers = [
 [tool.poetry.dependencies]
 python = "^3.9"
 google-auth = "2.29.0"
-google-api-python-client = "2.124.0"
+google-api-python-client = "2.127.0"
 icalendar = "5.0.12"
 pytz = "2024.1"
 PyYAML = "6.0.1"
