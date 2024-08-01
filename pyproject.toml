@@ -43,7 +43,7 @@ types-PyYAML = "^6.0.12"
 lxml = ">=4.9.3,<6.0.0"
 
 [tool.poetry.group.docs.dependencies]
-sphinx = ">=7.1,<7.4"
+sphinx = ">=7.1,<7.5"
 myst-parser = ">=2,<4"
 sphinx-rtd-theme = ">=1.2.2,<3.0.0"
 sphinx-copybutton = "^0.5.2"
