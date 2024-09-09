@@ -5,5 +5,11 @@ updates:
   schedule:
     interval: monthly
     time: '02:00'
+    timezone: "Europe/Moscow"
+    day: "saturday"
+  groups:
+    "PyPi updates":
+      patterns:
+        - "*"
   open-pull-requests-limit: 10
   target-branch: develop
