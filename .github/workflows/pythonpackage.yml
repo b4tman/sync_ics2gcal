@@ -55,5 +55,5 @@ jobs:
     - name: Upload mypy report
       uses: actions/upload-artifact@v4
       with:
-        name: mypy_report
+        name: mypy_report-${{ matrix.python-version }}
         path: mypy_report/
