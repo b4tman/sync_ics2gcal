@@ -53,7 +53,7 @@ jobs:
       run: poetry run black --check --diff --color .
 
     - name: Upload mypy report
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: mypy_report
         path: mypy_report/
