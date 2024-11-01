@@ -20,11 +20,11 @@ classifiers = [
 [tool.poetry.dependencies]
 python = "^3.9"
 google-auth = "2.35.0"
-google-api-python-client = "2.147.0"
-icalendar = "6.0.0"
+google-api-python-client = "2.151.0"
+icalendar = "6.0.1"
 pytz = "2024.2"
 PyYAML = "6.0.2"
-fire = "0.6.0"
+fire = "0.7.0"
 
 [tool.poetry.group.dev]
 optional = true
@@ -45,7 +45,7 @@ lxml = ">=4.9.3,<6.0.0"
 [tool.poetry.group.docs.dependencies]
 sphinx = ">=7.1,<7.5"
 myst-parser = ">=2,<4"
-sphinx-rtd-theme = ">=1.2.2,<3.0.0"
+sphinx-rtd-theme = ">=1.2.2,<4.0.0"
 sphinx-copybutton = "^0.5.2"
 sphinx-design = ">=0.5,<0.7"
 
