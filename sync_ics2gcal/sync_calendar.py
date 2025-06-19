@@ -21,7 +21,7 @@ def get_start_date(date: ConfigDate) -> datetime.datetime:
     if isinstance(date, datetime.datetime):
         return date
     if "now" == date:
-        result = datetime.datetime.utcnow()
+        result = datetime.datetime.now(datetime.UTC)
     else:
         result = dateutil.parser.parse(date)
     return result
