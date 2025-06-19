@@ -11,17 +11,16 @@ keywords = ["icalendar", "sync", "google", "calendar"]
 classifiers = [
     'License :: OSI Approved :: MIT License',
     'Operating System :: OS Independent',
-    'Programming Language :: Python :: 3.9',
-    'Programming Language :: Python :: 3.10',
     'Programming Language :: Python :: 3.11',
     'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3.13',
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9"
-google-auth = "2.40.2"
-google-api-python-client = "2.170.0"
-icalendar = "6.3.1"
+python = "^3.11"
+google-auth = "2.36.0"
+google-api-python-client = "2.154.0"
+icalendar = "6.1.0"
 pytz = "2025.2"
 PyYAML = "6.0.2"
 fire = "0.7.0"
@@ -33,21 +32,21 @@ optional = true
 optional = true
 
 [tool.poetry.group.dev.dependencies]
-pytest = ">=7.4,<9.0"
-flake8 = ">=5.0.4,<8.0.0"
-black = ">=23.7,<26.0"
-mypy = ">=0.960"
-types-python-dateutil = "^2.8.19"
-types-pytz = ">=2021.3.8"
-types-PyYAML = "^6.0.12"
-lxml = ">=4.9.3,<6.0.0"
+pytest = ">=8.1,<9.0"
+flake8 = ">=7.0.4,<8.0.0"
+black = ">=25.0,<26.0"
+mypy = ">=1.16.1"
+types-python-dateutil = ">=2.9.0.20250516"
+types-pytz = ">=2025.2.0.20250516"
+types-PyYAML = "^6.0.12.20250516"
+lxml = ">=5.4.0,<6.0.0"
 
 [tool.poetry.group.docs.dependencies]
-sphinx = ">=7.1,<7.5"
-myst-parser = ">=2,<4"
-sphinx-rtd-theme = ">=1.2.2,<4.0.0"
+sphinx = ">=8.2,<9.0"
+myst-parser = ">=4,<5"
+sphinx-rtd-theme = ">=3.0.2,<4.0.0"
 sphinx-copybutton = "^0.5.2"
-sphinx-design = ">=0.5,<0.7"
+sphinx-design = ">=0.6,<0.7"
 
 [tool.poetry.scripts]
 sync-ics2gcal = "sync_ics2gcal.sync_calendar:main"

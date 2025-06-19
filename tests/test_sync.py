@@ -119,7 +119,7 @@ def test_compare() -> None:
 @pytest.mark.parametrize("no_time", [True, False], ids=["date", "dateTime"])
 def test_filter_events_by_date(no_time: bool) -> None:
     msk = timezone("Europe/Moscow")
-    now = utc.localize(datetime.datetime.utcnow())
+    now = datetime.datetime.now(datetime.UTC)
     msk_now = msk.normalize(now.astimezone(msk))
 
     part_len = 5
@@ -152,7 +152,7 @@ def test_filter_events_by_date(no_time: bool) -> None:
 
 def test_filter_events_to_update() -> None:
     msk = timezone("Europe/Moscow")
-    now = utc.localize(datetime.datetime.utcnow())
+    now = datetime.datetime.now(datetime.UTC)
     msk_now = msk.normalize(now.astimezone(msk))
 
     one_hour = datetime.datetime(1, 1, 1, 2) - datetime.datetime(1, 1, 1, 1)
@@ -179,7 +179,7 @@ def test_filter_events_no_updated() -> None:
     test filtering events that not have 'updated' field
     such events should always pass the filter
     """
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now()
     yesterday = now - datetime.timedelta(days=-1)
 
     count = 10
