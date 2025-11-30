@@ -18,9 +18,9 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.11"
-google-auth = "2.42.1"
-google-api-python-client = "2.186.0"
-icalendar = "6.3.1"
+google-auth = "2.43.0"
+google-api-python-client = "2.187.0"
+icalendar = "6.3.2"
 pytz = "2025.2"
 PyYAML = "6.0.3"
 fire = "0.7.1"
@@ -32,7 +32,7 @@ optional = true
 optional = true
 
 [tool.poetry.group.dev.dependencies]
-pytest = ">=8.1,<9.0"
+pytest = ">=8.1,<10.0"
 flake8 = ">=7.0.4,<8.0.0"
 black = ">=25.0,<26.0"
 mypy = ">=1.16.1"
