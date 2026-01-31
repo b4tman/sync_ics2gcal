@@ -18,8 +18,8 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.11"
-google-auth = "2.45.0"
-google-api-python-client = "2.187.0"
+google-auth = "2.48.0"
+google-api-python-client = "2.188.0"
 icalendar = "6.3.2"
 pytz = "2025.2"
 PyYAML = "6.0.3"
@@ -34,7 +34,7 @@ optional = true
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.1,<10.0"
 flake8 = ">=7.0.4,<8.0.0"
-black = ">=25.0,<26.0"
+black = ">=25.0,<27.0"
 mypy = ">=1.16.1"
 types-python-dateutil = ">=2.9.0.20250516"
 types-pytz = ">=2025.2.0.20250516"
@@ -43,10 +43,10 @@ lxml = ">=5.4.0,<7.0.0"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = ">=8.2,<9.0"
-myst-parser = ">=4,<5"
+myst-parser = ">=4,<6"
 sphinx-rtd-theme = ">=3.0.2,<4.0.0"
 sphinx-copybutton = "^0.5.2"
-sphinx-design = ">=0.6,<0.7"
+sphinx-design = ">=0.6,<0.8"
 
 [tool.poetry.scripts]
 sync-ics2gcal = "sync_ics2gcal.sync_calendar:main"
