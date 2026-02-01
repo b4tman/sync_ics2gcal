@@ -9,7 +9,6 @@
 import importlib
 from typing import List
 
-
 project = "sync_ics2gcal"
 copyright = "2023, b4tman"
 author = "b4tman"
