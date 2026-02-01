@@ -8,45 +8,27 @@ from sync_ics2gcal import CalendarConverter
 from sync_ics2gcal.ical import format_datetime_utc
 
 uid = "UID:uisgtr8tre93wewe0yr8wqy@test.com"
-only_start_date = (
-    uid
-    + """
+only_start_date = uid + """
 DTSTART;VALUE=DATE:20180215
 """
-)
-date_val = (
-    only_start_date
-    + """
+date_val = only_start_date + """
 DTEND;VALUE=DATE:20180217
 """
-)
-date_duration = (
-    only_start_date
-    + """
+date_duration = only_start_date + """
 DURATION:P2D
 """
-)
-datetime_utc_val = (
-    uid
-    + """
+datetime_utc_val = uid + """
 DTSTART;VALUE=DATE-TIME:20180319T092001Z
 DTEND:20180321T102501Z
 """
-)
-datetime_utc_duration = (
-    uid
-    + """
+datetime_utc_duration = uid + """
 DTSTART;VALUE=DATE-TIME:20180319T092001Z
 DURATION:P2DT1H5M
 """
-)
-created_updated = (
-    date_val
-    + """
+created_updated = date_val + """
 CREATED:20180320T071155Z
 LAST-MODIFIED:20180326T120235Z
 """
-)
 
 
 def ics_test_cal(content: str) -> str:
@@ -107,7 +89,7 @@ def param_events_start_end(request: Any) -> Any:
 
 
 def test_event_start_end(param_events_start_end: Tuple[str, str, str, str]) -> None:
-    (date_type, ics_str, start, end) = param_events_start_end
+    date_type, ics_str, start, end = param_events_start_end
     converter = CalendarConverter()
     converter.loads(ics_str)
     events = converter.events_to_gcal()
