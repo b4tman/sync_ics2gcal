@@ -1,6 +1,6 @@
 import datetime
 import logging
-from typing import Union, Dict, Callable, Optional, Mapping, TypedDict
+from typing import Union, Dict, Callable, Optional, Mapping, TypedDict, cast
 
 from icalendar import Calendar, Event
 from pytz import utc
@@ -192,7 +192,10 @@ class CalendarConverter:
     def events_to_gcal(self) -> EventList:
         """Convert events to google calendar resources"""
 
-        calendar: Calendar = self.calendar
+        if self.calendar is None:
+            raise ValueError("calendar not set")
+
+        calendar: Calendar = cast(Calendar, self.calendar)
         ics_events = calendar.walk(name="VEVENT")
         self.logger.info("%d events read", len(ics_events))
 
