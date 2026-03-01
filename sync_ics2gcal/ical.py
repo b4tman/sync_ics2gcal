@@ -75,7 +75,7 @@ class EventConverter(Event):  # type: ignore
             string value
         """
 
-        return str(self.decoded(prop).decode(encoding="utf-8"))
+        return str(self.decoded(prop))
 
     def _datetime_str_prop(self, prop: str) -> str:
         """utc datetime as string from property
