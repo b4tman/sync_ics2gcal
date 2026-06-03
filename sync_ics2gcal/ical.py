@@ -182,12 +182,12 @@ class CalendarConverter:
     def load(self, filename: str) -> None:
         """load calendar from ics file"""
         with open(filename, "r", encoding="utf-8") as f:
-            self.calendar = Calendar.from_ical(f.read())
+            self.calendar = cast(Calendar, Calendar.from_ical(f.read()))  # type: ignore[redundant-cast]
             self.logger.info("%s loaded", filename)
 
     def loads(self, string: str) -> None:
         """load calendar from ics string"""
-        self.calendar = Calendar.from_ical(string)
+        self.calendar = cast(Calendar, Calendar.from_ical(string))  # type: ignore[redundant-cast]
 
     def events_to_gcal(self) -> EventList:
         """Convert events to google calendar resources"""
@@ -195,10 +195,10 @@ class CalendarConverter:
         if self.calendar is None:
             raise ValueError("calendar not set")
 
-        calendar: Calendar = cast(Calendar, self.calendar)
+        calendar: Calendar = cast(Calendar, self.calendar)  # type: ignore[redundant-cast]
         ics_events = calendar.walk(name="VEVENT")
         self.logger.info("%d events read", len(ics_events))
 
-        result = list(map(lambda event: EventConverter(event).convert(), ics_events))
+        result = list(map(lambda event: EventConverter(event).convert(), ics_events))  # type: ignore[no-untyped-call]
         self.logger.info("%d events converted", len(result))
         return result

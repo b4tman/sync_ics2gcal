@@ -120,7 +120,7 @@ class GoogleCalendarService:
         scopes = ["https://www.googleapis.com/auth/calendar"]
         credentials = service_account.Credentials.from_service_account_file(
             service_account_file
-        )
+        )  # type: ignore[no-untyped-call]
         scoped_credentials = credentials.with_scopes(scopes)
         service = discovery.build(
             "calendar", "v3", credentials=scoped_credentials, cache_discovery=False
