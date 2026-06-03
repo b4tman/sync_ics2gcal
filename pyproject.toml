@@ -57,6 +57,9 @@ manage-ics2gcal = "sync_ics2gcal.manage_calendars:main"
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.mypy]
+disable_error_code = "unused-ignore"
+
 [[tool.mypy.overrides]]
 module = [
     'icalendar',
