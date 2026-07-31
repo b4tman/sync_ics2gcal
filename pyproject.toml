@@ -19,10 +19,10 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.11"
-google-auth = "2.55.1"
+google-auth = "2.56.2"
 google-api-python-client = "2.198.0"
-icalendar = "7.2.0"
-pytz = "2026.2"
+icalendar = "7.2.2"
+pytz = "2026.3.post1"
 PyYAML = "6.0.3"
 fire = "0.7.1"
 
